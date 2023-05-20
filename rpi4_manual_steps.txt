@@ -1,0 +1,14 @@
+(RPI4)
+Write debian image to SD card
+Boot system
+Set hostname
+Create admin user
+Add user to sudo group
+Install base dependencies
+Install additional apt repositories
+Install crio
+Enable/start crio
+Enable sysctls
+Install kube components
+Init/join cluster
+Install cilium (bootstrap node only)

@@ -1,0 +1,22 @@
+(PC)
+Create new root volume
+Debootstrap new root volume
+Mount chroot metadata filesystems
+Mount efi filesystem
+Enter chroot
+Add debian updates/security repos
+Install base dependencies
+Set hostname
+Create admin user
+Add user to sudo group
+Update fstab
+Update bootloader config
+Configure network
+Enable systemd-networkd
+Enable openssh-server
+Install additional apt repositories
+Install crio
+Enable crio
+Enable sysctls
+Reboot
+Join cluster
