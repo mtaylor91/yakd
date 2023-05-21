@@ -1,0 +1,5 @@
+Low priority:
+- Setup mirror(s) for crio/libcontainers
+  * De-clutter URLs for keyrings
+  * Setup mirror automation
+- Support multiple Debian versions
