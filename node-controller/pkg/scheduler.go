@@ -99,13 +99,7 @@ func (scheduler *Scheduler) schedule(schedules <-chan *Schedule) {
 }
 
 func (s *Scheduler) ScheduleOnce(f func(), t time.Time) {
-	s.schedules <- &Schedule{
-		executeDone:       false,
-		executeFunc:       f,
-		executeNext:       nil,
-		executeTime:       t,
-		executeRepeatedly: 0,
-	}
+	s.ScheduleRepeat(f, t, 0)
 }
 
 func (s *Scheduler) ScheduleRepeat(f func(), t time.Time, r time.Duration) {
