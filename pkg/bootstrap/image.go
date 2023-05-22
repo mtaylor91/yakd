@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/util"
 )
 
 // Image represents a disk image
@@ -90,17 +92,9 @@ func (i *Image) Create(mountpoint string, osFactory OSFactory) error {
 
 // Alloc allocates a new image file
 func (i *Image) Alloc() error {
-	// Get dd path
-	dd, err := exec.LookPath("dd")
-	if err != nil {
-		return err
-	}
-
 	// Create image using dd
-	cmd := exec.Command(dd, "if=/dev/zero", "of="+i.Path, "bs=1M",
-		"count=1", "seek="+strconv.Itoa(i.SizeMB-1))
-	err = cmd.Run()
-	if err != nil {
+	if err := util.RunCmd("dd", "if=/dev/zero", "of="+i.Path, "bs=1M",
+		"count=1", "seek="+strconv.Itoa(i.SizeMB-1)); err != nil {
 		return err
 	}
 
@@ -109,96 +103,66 @@ func (i *Image) Alloc() error {
 
 // Attach attaches the image to a loop device
 func (i *Image) Attach() (*Loop, error) {
-	// Get losetup path
-	losetup, err := exec.LookPath("losetup")
-	if err != nil {
-		return nil, err
-	}
-
 	// Attach image to loop device
 	log.Infof("Attaching image %s to loop device", i.Path)
-	cmd := exec.Command(losetup, "-P", "-f", i.Path)
-	err = cmd.Run()
-	if err != nil {
+	if err := util.RunCmd("losetup", "-P", "-f", i.Path); err != nil {
 		return nil, err
 	}
 
 	// Get loop device info
 	log.Infof("Getting loop device info for %s", i.Path)
-	cmd = exec.Command(losetup, "-j", i.Path)
-	out, err := cmd.Output()
-	if err != nil {
+	if out, err := util.GetOutput("losetup", "-j", i.Path); err != nil {
 		return nil, err
+	} else {
+		// Get loop device path
+		loopPath := strings.Split(string(out), ":")[0]
+		log.Infof("Loop device path is %s", loopPath)
+
+		return &Loop{loopPath}, nil
 	}
-
-	// Get loop device path
-	loopPath := strings.Split(string(out), ":")[0]
-	log.Infof("Loop device path is %s", loopPath)
-
-	return &Loop{loopPath}, nil
 }
 
 // Partition partitions the image
 func (i *Image) Partition() error {
-	// Get parted path
-	parted, err := exec.LookPath("parted")
-	if err != nil {
-		return err
-	}
-
 	// Create partition table
 	log.Infof("Creating partition table on %s", i.Path)
-	cmd := exec.Command(parted, i.Path, "mklabel", "gpt")
-	err = cmd.Run()
-	if err != nil {
+	if err := util.RunCmd("parted", i.Path, "mklabel", "gpt"); err != nil {
 		return err
 	}
 
 	// Create EFI partition
 	log.Infof("Creating EFI partition on %s", i.Path)
-	cmd = exec.Command(parted, i.Path, "mkpart", "primary", "fat32", "1MiB", "512MiB")
-	err = cmd.Run()
-	if err != nil {
+	if err := util.RunCmd("parted", i.Path, "mkpart", "primary", "fat32", "1MiB", "512MiB"); err != nil {
 		return err
 	}
 
 	// Create root partition
 	log.Infof("Creating root partition on %s", i.Path)
-	cmd = exec.Command(parted, i.Path, "mkpart", "primary", "ext4", "512MiB", "100%")
-	err = cmd.Run()
-	if err != nil {
+	if err := util.RunCmd("parted", i.Path, "mkpart", "primary", "ext4", "512MiB", "100%"); err != nil {
 		return err
 	}
 
 	// Set boot flag on EFI partition
 	log.Infof("Setting boot flag on EFI partition on %s", i.Path)
-	cmd = exec.Command(parted, i.Path, "set", "1", "boot", "on")
-	err = cmd.Run()
-	if err != nil {
+	if err := util.RunCmd("parted", i.Path, "set", "1", "boot", "on"); err != nil {
 		return err
 	}
 
 	// Set esp flag on EFI partition
 	log.Infof("Setting esp flag on EFI partition on %s", i.Path)
-	cmd = exec.Command(parted, i.Path, "set", "1", "esp", "on")
-	err = cmd.Run()
-	if err != nil {
+	if err := util.RunCmd("parted", i.Path, "set", "1", "esp", "on"); err != nil {
 		return err
 	}
 
 	// Set root partition label
 	log.Infof("Setting root partition label on %s", i.Path)
-	cmd = exec.Command(parted, i.Path, "name", "2", "root")
-	err = cmd.Run()
-	if err != nil {
+	if err := util.RunCmd("parted", i.Path, "name", "2", "root"); err != nil {
 		return err
 	}
 
 	// Set EFI partition label
 	log.Infof("Setting EFI partition label on %s", i.Path)
-	cmd = exec.Command(parted, i.Path, "name", "1", "efi")
-	err = cmd.Run()
-	if err != nil {
+	if err := util.RunCmd("parted", i.Path, "name", "1", "efi"); err != nil {
 		return err
 	}
 

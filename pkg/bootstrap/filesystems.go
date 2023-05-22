@@ -1,23 +1,18 @@
 package bootstrap
 
 import (
-	"os"
 	"os/exec"
 	"path"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/util"
 )
 
 // CreateMountpoint creates the mountpoint for the bootstrap
 func CreateMountpointAt(path string) error {
-	mkdir, err := exec.LookPath("mkdir")
-	if err != nil {
-		return err
-	}
-
 	// Create mountpoint if it doesn't exist
-	cmd := exec.Command(mkdir, "-p", path)
-	if err := cmd.Run(); err != nil {
+	if err := util.RunCmd("mkdir", "-p", path); err != nil {
 		return err
 	}
 
@@ -26,14 +21,8 @@ func CreateMountpointAt(path string) error {
 
 // MountPartitionAt mounts the specified disk at the specified location
 func MountPartitionAt(partition, location string) error {
-	mount, err := exec.LookPath("mount")
-	if err != nil {
-		return err
-	}
-
 	// Mount filesystem
-	cmd := exec.Command(mount, partition, location)
-	if err := cmd.Run(); err != nil {
+	if err := util.RunCmd("mount", partition, location); err != nil {
 		return err
 	}
 
@@ -68,33 +57,17 @@ func MountMetadataFilesystems(root string) error {
 
 // RemoveMountpointAt removes the specified mountpoint
 func RemoveMountpointAt(p string) {
-	rmdir, err := exec.LookPath("rmdir")
-	if err != nil {
-		log.Errorf("Could not find rmdir: %s", err)
-	}
-
 	// Remove mountpoint
-	cmd := exec.Command(rmdir, p)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		log.Errorf("Remove %s failed: %s", cmd, err)
+	if err := util.RunCmd("rmdir", p); err != nil {
+		log.Errorf("Remove %s failed: %s", p, err)
 	}
 }
 
 // UnmountFilesystems recursively unmounts the specified filesystem(s)
 func UnmountFilesystems(p string) {
-	umount, err := exec.LookPath("umount")
-	if err != nil {
-		log.Errorf("Could not find umount: %s", err)
-	}
-
 	// Unmount filesystem
-	cmd := exec.Command(umount, "-R", p)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		log.Errorf("Unmount %s failed: %s", cmd, err)
+	if err := util.RunCmd("umount", "-R", p); err != nil {
+		log.Errorf("Unmount %s failed: %s", p, err)
 	}
 }
 
