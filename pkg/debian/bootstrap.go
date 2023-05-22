@@ -33,27 +33,32 @@ func (c *BootstrapConfig) Bootstrap() error {
 // PostBootstrap runs post-bootstrap steps
 func (c *BootstrapConfig) PostBootstrap() error {
 	// Configure locales
-	if err := c.ConfigureLocales(); err != nil {
+	if err := configureLocales(c.Target); err != nil {
 		return err
 	}
 
 	// Install base packages
-	if err := c.InstallBasePackages(); err != nil {
+	if err := installBasePackages(c.Target); err != nil {
 		return err
 	}
 
 	// Configure repositories
-	if err := c.ConfigureRepositories(); err != nil {
+	if err := c.configureRepositories(); err != nil {
 		return err
 	}
 
 	// Install Kubernetes packages
-	if err := c.InstallKubePackages(); err != nil {
+	if err := installKubePackages(c.Target); err != nil {
+		return err
+	}
+
+	// Configure system for kubernetes
+	if err := configureKubernetes(c.Target); err != nil {
 		return err
 	}
 
 	// Install kernel
-	if err := c.InstallKernel(); err != nil {
+	if err := c.installKernel(); err != nil {
 		return err
 	}
 

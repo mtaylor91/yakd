@@ -24,25 +24,25 @@ var kubePackages = []string{
 	"kubelet",
 }
 
-// InstallBasePackages installs the base packages
-func (c *BootstrapConfig) InstallBasePackages() error {
+// installBasePackages installs the base packages
+func installBasePackages(target string) error {
 	// Install packages
-	if err := installPackages(c.Target, basePackages...); err != nil {
+	if err := installPackages(target, basePackages...); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// InstallKubePackages installs the Kubernetes packages
-func (c *BootstrapConfig) InstallKubePackages() error {
+// installKubePackages installs the Kubernetes packages
+func installKubePackages(target string) error {
 	// Install packages
-	if err := installPackages(c.Target, kubePackages...); err != nil {
+	if err := installPackages(target, kubePackages...); err != nil {
 		return err
 	}
 
 	// Hold packages
-	if err := holdPackages(c.Target, kubePackages...); err != nil {
+	if err := holdPackages(target, kubePackages...); err != nil {
 		return err
 	}
 

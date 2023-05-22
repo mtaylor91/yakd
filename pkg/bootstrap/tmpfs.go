@@ -32,7 +32,7 @@ func (t *TmpFS) Allocate() error {
 }
 
 // Bootstrap runs filesystem bootstrapping
-func (t *TmpFS) Bootstrap(osFactory OSFactory, cleanup bool) error {
+func (t *TmpFS) Bootstrap(osFactory OSFactory) error {
 	// Create mountpoint
 	if err := t.Allocate(); err != nil {
 		return err
@@ -51,9 +51,7 @@ func (t *TmpFS) Bootstrap(osFactory OSFactory, cleanup bool) error {
 		return err
 	}
 
-	if cleanup {
-		defer UnmountMetadataFilesystems(t.Path)
-	}
+	defer UnmountMetadataFilesystems(t.Path)
 
 	// Run post-bootstrap step
 	log.Infof("Running post-bootstrap step")

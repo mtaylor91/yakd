@@ -79,7 +79,7 @@ func ImageStage1(cmd *cobra.Command, args []string) {
 		SizeMB: v.GetInt("tmpfs-size"),
 	}
 
-	err := tmpfs.Bootstrap(debian, cleanup)
+	err := tmpfs.Bootstrap(debian)
 	if err != nil {
 		log.Fatal(err)
 	}

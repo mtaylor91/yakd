@@ -7,8 +7,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// InstallKernel installs the kernel specified in the kernel string
-func (c *BootstrapConfig) InstallKernel() error {
+// installKernel installs the kernel specified in the kernel string
+func (c *BootstrapConfig) installKernel() error {
 	// Look for chroot
 	chroot, err := exec.LookPath("chroot")
 	if err != nil {

@@ -28,8 +28,8 @@ type AptSource struct {
 	Components string
 }
 
-// ConfigureRepositories configures the apt repositories for the target OS
-func (c *BootstrapConfig) ConfigureRepositories() error {
+// configureRepositories configures the apt repositories for the target OS
+func (c *BootstrapConfig) configureRepositories() error {
 	keyrings := "usr/share/keyrings"
 
 	// Setup sources.list
