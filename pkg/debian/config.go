@@ -1,6 +1,6 @@
 package debian
 
-import "github.com/mtaylor91/yakd/node-controller/pkg/bootstrap"
+import "github.com/mtaylor91/yakd/pkg/bootstrap"
 
 const (
 	DefaultDebootstrap = "debootstrap"

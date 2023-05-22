@@ -5,8 +5,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/mtaylor91/yakd/node-controller/pkg/bootstrap"
-	"github.com/mtaylor91/yakd/node-controller/pkg/debian"
+	"github.com/mtaylor91/yakd/pkg/bootstrap"
+	"github.com/mtaylor91/yakd/pkg/debian"
 )
 
 var ImageCmd = &cobra.Command{

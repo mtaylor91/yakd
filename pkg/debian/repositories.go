@@ -5,7 +5,7 @@ import (
 	"path"
 	"text/template"
 
-	"github.com/mtaylor91/yakd/node-controller/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util"
 )
 
 const AptSourcesTemplate = `

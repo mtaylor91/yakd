@@ -5,7 +5,7 @@ import (
 )
 
 var RootCmd = &cobra.Command{
-	Use: "node-controller",
+	Use: "yakd",
 }
 
 func init() {

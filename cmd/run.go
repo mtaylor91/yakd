@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/mtaylor91/yakd/node-controller/pkg"
+	"github.com/mtaylor91/yakd/pkg"
 )
 
 var DefaultEtcdEndpoints []string = []string{}

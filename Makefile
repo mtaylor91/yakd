@@ -1,10 +1,12 @@
 
-.PHONY: all
-all: node-controller
+GO_SRCS := $(shell find . -name '*.go')
 
-.PHONY: node-controller
-node-controller:
-	$(MAKE) -C node-controller
+.PHONY: all
+all: bin/yakd
+
+bin/yakd: $(GO_SRCS)
+	@mkdir -p $(@D)
+	go build -o $@
 
 .PHONY: run
 run: node-controller
