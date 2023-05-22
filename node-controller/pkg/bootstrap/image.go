@@ -74,14 +74,13 @@ func (i *Image) Create(mountpoint string, osFactory OSFactory) error {
 	}
 
 	// Initialize parameters for bootstrap
-	disk := loop.Path
-	esp := disk + "p1"
-	root := disk + "p2"
-	bootstrapConfig := NewBootstrapConfig(disk, esp, root, mountpoint, osFactory)
-	bootstrapConfig.Cleanup = i.Cleanup
+	esp := loop.Path + "p1"
+	root := loop.Path + "p2"
+	os := osFactory.NewOS(mountpoint)
+	disk := &Disk{loop.Path, esp, root, mountpoint, i.Cleanup, os}
 
 	// Bootstrap image
-	err = bootstrapConfig.Bootstrap()
+	err = disk.Bootstrap()
 	if err != nil {
 		return err
 	}

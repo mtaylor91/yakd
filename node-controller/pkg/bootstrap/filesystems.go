@@ -7,69 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Bootstrap runs filesystem bootstrapping
-func (c *BootstrapConfig) Bootstrap() error {
-	// Create mountpoint
-	log.Infof("Creating mountpoint %s", c.Mount)
-	if err := CreateMountpointAt(c.Mount); err != nil {
-		return err
-	}
-
-	if c.Cleanup {
-		defer RemoveMountpointAt(c.Mount)
-	}
-
-	// Mount root partition
-	log.Infof("Mounting root partition %s on %s", c.RootPartition, c.Mount)
-	if err := MountPartitionAt(c.RootPartition, c.Mount); err != nil {
-		return err
-	}
-
-	if c.Cleanup {
-		defer UnmountFilesystems(c.Mount)
-	}
-
-	// Bootstrap OS root filesystem
-	if err := c.OS.Bootstrap(); err != nil {
-		return err
-	}
-
-	// Mount metadata filesystems
-	log.Infof("Mounting metadata filesystems on %s", c.Mount)
-	if err := c.MountMetadataFilesystems(); err != nil {
-		return err
-	}
-
-	if c.Cleanup {
-		defer c.UnmountMetadataFilesystems()
-	}
-
-	// Create ESP mountpoint
-	esp := path.Join(c.Mount, "boot", "efi")
-	log.Infof("Creating ESP mountpoint at %s", esp)
-	if err := CreateMountpointAt(esp); err != nil {
-		return err
-	}
-
-	// Mount ESP
-	log.Infof("Mounting ESP partition %s on %s", c.ESPPartition, esp)
-	if err := MountPartitionAt(c.ESPPartition, esp); err != nil {
-		return err
-	}
-
-	if c.Cleanup {
-		defer UnmountFilesystems(esp)
-	}
-
-	// Run post-bootstrap step
-	log.Infof("Running post-bootstrap step")
-	if err := c.OS.PostBootstrap(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // CreateMountpoint creates the mountpoint for the bootstrap
 func CreateMountpointAt(path string) error {
 	mkdir, err := exec.LookPath("mkdir")
@@ -103,20 +40,20 @@ func MountPartitionAt(partition, location string) error {
 }
 
 // MountMetadataFilesystems creates the mountpoints for the bootstrap
-func (c *BootstrapConfig) MountMetadataFilesystems() error {
+func MountMetadataFilesystems(root string) error {
 	mount, err := exec.LookPath("mount")
 	if err != nil {
 		return err
 	}
 
 	commands := []*exec.Cmd{
-		exec.Command(mount, "--rbind", "/dev", path.Join(c.Mount, "dev")),
-		exec.Command(mount, "--make-rslave", path.Join(c.Mount, "dev")),
-		exec.Command(mount, "-t", "proc", "/proc", path.Join(c.Mount, "proc")),
-		exec.Command(mount, "--rbind", "/sys", path.Join(c.Mount, "sys")),
-		exec.Command(mount, "--make-rslave", path.Join(c.Mount, "sys")),
-		exec.Command(mount, "--bind", "/run", path.Join(c.Mount, "run")),
-		exec.Command(mount, "--make-slave", path.Join(c.Mount, "run")),
+		exec.Command(mount, "--rbind", "/dev", path.Join(root, "dev")),
+		exec.Command(mount, "--make-rslave", path.Join(root, "dev")),
+		exec.Command(mount, "-t", "proc", "/proc", path.Join(root, "proc")),
+		exec.Command(mount, "--rbind", "/sys", path.Join(root, "sys")),
+		exec.Command(mount, "--make-rslave", path.Join(root, "sys")),
+		exec.Command(mount, "--bind", "/run", path.Join(root, "run")),
+		exec.Command(mount, "--make-slave", path.Join(root, "run")),
 	}
 
 	for _, cmd := range commands {
@@ -157,16 +94,17 @@ func UnmountFilesystems(p string) {
 }
 
 // UnmountMetadataFilesystems destroys the mountpoints for the bootstrap
-func (c *BootstrapConfig) UnmountMetadataFilesystems() {
+func UnmountMetadataFilesystems(root string) {
 	umount, err := exec.LookPath("umount")
 	if err != nil {
 		log.Errorf("Could not find umount: %s", err)
 	}
 
 	commands := []*exec.Cmd{
-		exec.Command(umount, "-l", path.Join(c.Mount, "dev", "pts")),
-		exec.Command(umount, "-l", path.Join(c.Mount, "dev", "shm")),
-		exec.Command(umount, "-l", path.Join(c.Mount, "dev")),
+		exec.Command(umount, "-R", path.Join(root, "dev")),
+		exec.Command(umount, "-R", path.Join(root, "proc")),
+		exec.Command(umount, "-R", path.Join(root, "sys")),
+		exec.Command(umount, "-R", path.Join(root, "run")),
 	}
 
 	for _, cmd := range commands {

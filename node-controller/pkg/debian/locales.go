@@ -20,6 +20,14 @@ func (c *BootstrapConfig) ConfigureLocales() error {
 		return err
 	}
 
+	// Install locales
+	cmd := exec.Command(chroot, c.Target, "apt-get", "install", "-y", "locales")
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
 	// Write locale.gen
 	log.Infof("Writing locale.gen")
 	localeGenPath := c.Target + "/etc/locale.gen"
@@ -29,7 +37,7 @@ func (c *BootstrapConfig) ConfigureLocales() error {
 
 	// Configure locales
 	log.Infof("Configuring locales")
-	cmd := exec.Command(chroot, c.Target, "locale-gen")
+	cmd = exec.Command(chroot, c.Target, "locale-gen")
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
