@@ -1,3 +1,4 @@
 /debian.img
+/stage1.tar.xz
 /node-controller/bin
 /pi/*.img.xz
