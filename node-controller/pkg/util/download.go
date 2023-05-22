@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Download struct {
@@ -19,6 +21,8 @@ func NewDownload(source, destination string) *Download {
 
 // Download downloads a file from a URL to a destination
 func (d *Download) Download() error {
+	log.Infof("Downloading %s to %s", d.Source, d.Destination)
+
 	// Initiate http connection
 	resp, err := http.Get(d.Source)
 	if err != nil {
@@ -42,6 +46,8 @@ func (d *Download) Download() error {
 // DownloadAndDearmorGPG downloads a file from a URL to a destination
 // and performs a GPG dearmor
 func (d *Download) DownloadAndDearmorGPG() error {
+	log.Infof("Downloading %s to %s (and removing GPG armor)", d.Source, d.Destination)
+
 	// Initiate http connection
 	resp, err := http.Get(d.Source)
 	if err != nil {

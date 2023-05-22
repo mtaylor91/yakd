@@ -12,6 +12,7 @@ import (
 
 // Image represents a disk image
 type Image struct {
+	Cleanup   bool
 	Path      string
 	SizeMB    int
 	Overwrite bool
@@ -62,7 +63,9 @@ func (i *Image) Create(mountpoint string, osFactory OSFactory) error {
 		return err
 	}
 
-	defer loop.Detach()
+	if i.Cleanup {
+		defer loop.Detach()
+	}
 
 	// Format image
 	log.Infof("Formatting image %s on %s", i.Path, loop.Path)
@@ -74,8 +77,15 @@ func (i *Image) Create(mountpoint string, osFactory OSFactory) error {
 	esp := loop.Path + "p1"
 	root := loop.Path + "p2"
 	bootstrapConfig := NewBootstrapConfig(esp, root, mountpoint, osFactory)
+	bootstrapConfig.Cleanup = i.Cleanup
 
-	return bootstrapConfig.Bootstrap()
+	// Bootstrap image
+	err = bootstrapConfig.Bootstrap()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Alloc allocates a new image file

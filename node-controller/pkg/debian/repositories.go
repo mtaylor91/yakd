@@ -9,9 +9,9 @@ import (
 )
 
 const AptSourcesTemplate = `
-deb http://{{.Mirror}} {{.Release}} main contrib non-free
-deb http://{{.Mirror}} {{.Release}}-updates main contrib non-free
-deb http://security.debian.org/debian-security {{.Release}}-security main contrib non-free
+deb {{.Mirror}} {{.Suite}} main contrib non-free
+deb {{.Mirror}} {{.Suite}}-updates main contrib non-free
+deb http://security.debian.org/debian-security {{.Suite}}-security main contrib non-free
 `
 
 const SignedAptSourcesTemplate = `

@@ -32,13 +32,13 @@ func (c *BootstrapConfig) Bootstrap() error {
 
 // PostBootstrap runs post-bootstrap steps
 func (c *BootstrapConfig) PostBootstrap() error {
-	// Configure repositories
-	if err := c.ConfigureRepositories(); err != nil {
+	// Install ancillary packages
+	if err := c.InstallBasePackages(); err != nil {
 		return err
 	}
 
-	// Install ancillary packages
-	if err := c.InstallPackages(); err != nil {
+	// Configure repositories
+	if err := c.ConfigureRepositories(); err != nil {
 		return err
 	}
 

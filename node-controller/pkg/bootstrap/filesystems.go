@@ -15,15 +15,19 @@ func (c *BootstrapConfig) Bootstrap() error {
 		return err
 	}
 
-	defer RemoveMountpointAt(c.Mount)
+	if c.Cleanup {
+		defer RemoveMountpointAt(c.Mount)
+	}
 
 	// Mount root partition
 	log.Infof("Mounting root partition %s on %s", c.RootPartition, c.Mount)
-	if err := c.MountFilesystem(); err != nil {
+	if err := MountPartitionAt(c.RootPartition, c.Mount); err != nil {
 		return err
 	}
 
-	defer UnmountFilesystems(c.Mount)
+	if c.Cleanup {
+		defer UnmountFilesystems(c.Mount)
+	}
 
 	// Bootstrap OS root filesystem
 	if err := c.OS.Bootstrap(); err != nil {
@@ -36,7 +40,9 @@ func (c *BootstrapConfig) Bootstrap() error {
 		return err
 	}
 
-	defer c.UnmountMetadataFilesystems()
+	if c.Cleanup {
+		defer c.UnmountMetadataFilesystems()
+	}
 
 	// Create ESP mountpoint
 	esp := path.Join(c.Mount, "boot", "efi")
@@ -45,9 +51,18 @@ func (c *BootstrapConfig) Bootstrap() error {
 		return err
 	}
 
-	defer UnmountFilesystems(esp)
+	// Mount ESP
+	log.Infof("Mounting ESP partition %s on %s", c.ESPPartition, esp)
+	if err := MountPartitionAt(c.ESPPartition, esp); err != nil {
+		return err
+	}
+
+	if c.Cleanup {
+		defer UnmountFilesystems(esp)
+	}
 
 	// Run post-bootstrap step
+	log.Infof("Running post-bootstrap step")
 	if err := c.OS.PostBootstrap(); err != nil {
 		return err
 	}
@@ -71,15 +86,15 @@ func CreateMountpointAt(path string) error {
 	return nil
 }
 
-// MountFilesystem mounts the bootstrap filesystem
-func (c *BootstrapConfig) MountFilesystem() error {
+// MountPartitionAt mounts the specified disk at the specified location
+func MountPartitionAt(partition, location string) error {
 	mount, err := exec.LookPath("mount")
 	if err != nil {
 		return err
 	}
 
 	// Mount filesystem
-	cmd := exec.Command(mount, c.RootPartition, c.Mount)
+	cmd := exec.Command(mount, partition, location)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
