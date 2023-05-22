@@ -57,10 +57,5 @@ func (c *BootstrapConfig) PostBootstrap() error {
 		return err
 	}
 
-	// Install bootloader
-	if err := c.InstallBootloader(); err != nil {
-		return err
-	}
-
 	return nil
 }

@@ -66,6 +66,7 @@ func (t *TmpFS) Bootstrap(osFactory OSFactory, cleanup bool) error {
 
 // Destroy removes the tmpfs
 func (t *TmpFS) Destroy() {
+	UnmountFilesystems(t.Path)
 	RemoveMountpointAt(t.Path)
 }
 

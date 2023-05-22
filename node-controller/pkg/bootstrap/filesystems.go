@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"os"
 	"os/exec"
 	"path"
 
@@ -74,6 +75,8 @@ func RemoveMountpointAt(p string) {
 
 	// Remove mountpoint
 	cmd := exec.Command(rmdir, p)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		log.Errorf("Remove %s failed: %s", cmd, err)
 	}
@@ -88,6 +91,8 @@ func UnmountFilesystems(p string) {
 
 	// Unmount filesystem
 	cmd := exec.Command(umount, "-R", p)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		log.Errorf("Unmount %s failed: %s", cmd, err)
 	}

@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"os"
 	"os/exec"
 
 	log "github.com/sirupsen/logrus"
@@ -22,7 +23,9 @@ func (s *Stage1) BuildArchive() error {
 
 	// Create archive
 	log.Infof("Creating stage1 archive at %s", s.Target)
-	cmd := exec.Command(tarPath, "-C", s.Source, "-cJf", s.Target, ".")
+	cmd := exec.Command(tarPath, "-C", s.Source, "-caf", s.Target, ".")
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return err
 	}

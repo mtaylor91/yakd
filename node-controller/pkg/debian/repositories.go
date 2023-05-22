@@ -109,6 +109,8 @@ func writeTemplateToFile(name, src, dest string, data interface{}) error {
 		return err
 	}
 
+	defer f.Close()
+
 	if err := tmpl.Execute(f, data); err != nil {
 		return err
 	}

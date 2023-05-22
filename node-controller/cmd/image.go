@@ -32,7 +32,7 @@ func init() {
 
 	stage1Flags := ImageStage1Cmd.Flags()
 	stage1Flags.BoolP("force", "f", false, "Overwrite existing stage 1")
-	stage1Flags.String("target", "stage1.tar.xz", "Target path for stage 1")
+	stage1Flags.String("target", "stage1.tar.gz", "Target path for stage 1")
 	stage1Flags.String("suite", debian.DefaultSuite, "Debian suite")
 	stage1Flags.String("mirror", debian.DefaultMirror, "Debian mirror")
 	stage1Flags.String("mountpoint", "/mnt/target", "Mountpoint for stage 1 build")

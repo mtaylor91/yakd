@@ -26,23 +26,3 @@ func (c *BootstrapConfig) InstallKernel() error {
 
 	return nil
 }
-
-// InstallBootloader installs the bootloader
-func (c *BootstrapConfig) InstallBootloader() error {
-	// Look for chroot
-	chroot, err := exec.LookPath("chroot")
-	if err != nil {
-		return err
-	}
-
-	// Install grub-efi
-	log.Infof("Installing grub-efi")
-	cmd := exec.Command(chroot, c.Target, "apt-get", "install", "-y", "grub-efi")
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
-}

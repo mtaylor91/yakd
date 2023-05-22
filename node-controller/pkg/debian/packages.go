@@ -17,6 +17,8 @@ var basePackages = []string{
 }
 
 var kubePackages = []string{
+	"cri-o",
+	"cri-o-runc",
 	"kubeadm",
 	"kubectl",
 	"kubelet",
@@ -39,6 +41,33 @@ func (c *BootstrapConfig) InstallKubePackages() error {
 		return err
 	}
 
+	// Hold packages
+	if err := holdPackages(c.Target, kubePackages...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// holdPackages is a helper function to hold packages at a specific version
+func holdPackages(target string, packages ...string) error {
+	// Look for chroot
+	chroot, err := exec.LookPath("chroot")
+	if err != nil {
+		return err
+	}
+
+	// Hold packages
+	log.Infof("Holding packages %v", packages)
+	args := []string{target, "apt-mark", "hold"}
+	args = append(args, packages...)
+	cmd := exec.Command(chroot, args...)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -50,11 +79,21 @@ func installPackages(target string, packages ...string) error {
 		return err
 	}
 
-	// Install packages
-	log.Infof("Installing base packages")
-	args := []string{target, "apt-get", "install", "-y"}
-	args = append(args, packages...)
+	// Update apt indices
+	log.Infof("Updating apt indices")
+	args := []string{target, "apt-get", "update"}
 	cmd := exec.Command(chroot, args...)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	// Install packages
+	log.Infof("Installing packages %v", packages)
+	args = []string{target, "apt-get", "install", "-y"}
+	args = append(args, packages...)
+	cmd = exec.Command(chroot, args...)
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
