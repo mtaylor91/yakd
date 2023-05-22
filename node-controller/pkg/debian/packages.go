@@ -12,6 +12,7 @@ var basePackages = []string{
 	"ca-certificates",
 	"curl",
 	"gnupg2",
+	"locales",
 	"lvm2",
 	"sudo",
 }

@@ -115,8 +115,8 @@ func (c *BootstrapConfig) MountMetadataFilesystems() error {
 		exec.Command(mount, "-t", "proc", "/proc", path.Join(c.Mount, "proc")),
 		exec.Command(mount, "--rbind", "/sys", path.Join(c.Mount, "sys")),
 		exec.Command(mount, "--make-rslave", path.Join(c.Mount, "sys")),
-		exec.Command(mount, "--rbind", "/run", path.Join(c.Mount, "run")),
-		exec.Command(mount, "--make-rslave", path.Join(c.Mount, "run")),
+		exec.Command(mount, "--bind", "/run", path.Join(c.Mount, "run")),
+		exec.Command(mount, "--make-slave", path.Join(c.Mount, "run")),
 	}
 
 	for _, cmd := range commands {

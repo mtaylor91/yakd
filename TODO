@@ -1,3 +1,10 @@
+High priority
+- Update fstab
+- grub-install
+Medium priority:
+- Set hostname
+- Support multiarch
+  * arm64 kernel / bootloader
 Low priority:
 - Setup mirror(s) for crio/libcontainers
   * De-clutter URLs for keyrings

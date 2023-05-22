@@ -43,7 +43,7 @@ func (c *BootstrapConfig) ConfigureRepositories() error {
 	keyringDownload := util.NewDownload("https://packages.cloud.google.com/apt/doc/apt-key.gpg",
 		path.Join(c.Target, keyring))
 	// Download keyring
-	if err := keyringDownload.Download(); err != nil {
+	if err := keyringDownload.DownloadAndDearmorGPG(); err != nil {
 		return err
 	}
 	// Write template to apt source file
