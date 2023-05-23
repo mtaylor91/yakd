@@ -1,6 +1,5 @@
 High priority
 - Update fstab
-- grub-install
 Medium priority:
 - Set hostname
 - Support multiarch
