@@ -1,4 +1,5 @@
-/debian.img
-/stage1.tar.*
 /bin
+/debian.img
 /pi/*.img.xz
+/stage1.tar.*
+/yakd.qcow2*

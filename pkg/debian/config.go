@@ -1,6 +1,9 @@
 package debian
 
-import "github.com/mtaylor91/yakd/pkg/bootstrap"
+import (
+	"github.com/mtaylor91/yakd/pkg/bootstrap"
+	"github.com/mtaylor91/yakd/pkg/os"
+)
 
 const (
 	DefaultDebootstrap = "debootstrap"
@@ -29,7 +32,7 @@ type Debian struct {
 	Debootstrap string
 }
 
-func (d *Debian) NewOS(target string) bootstrap.OS {
+func (d *Debian) Installer(target string) os.OSInstaller {
 	return NewBootstrapConfig(target)
 }
 

@@ -48,16 +48,6 @@ func (d *Disk) Populate(source string) error {
 		defer UnmountFilesystems(d.mountpoint)
 	}
 
-	// Mount metadata filesystems
-	log.Infof("Mounting metadata filesystems on %s", d.mountpoint)
-	if err := MountMetadataFilesystems(d.mountpoint); err != nil {
-		return err
-	}
-
-	if d.cleanup {
-		defer UnmountMetadataFilesystems(d.mountpoint)
-	}
-
 	// Create ESP mountpoint
 	esp := path.Join(d.mountpoint, "boot", "efi")
 	log.Infof("Creating ESP mountpoint at %s", esp)
@@ -79,6 +69,16 @@ func (d *Disk) Populate(source string) error {
 	log.Infof("Copying source %s to %s", source, d.mountpoint)
 	if err := UnpackTarball(source, d.mountpoint); err != nil {
 		return err
+	}
+
+	// Mount metadata filesystems
+	log.Infof("Mounting metadata filesystems on %s", d.mountpoint)
+	if err := MountMetadataFilesystems(d.mountpoint); err != nil {
+		return err
+	}
+
+	if d.cleanup {
+		defer UnmountMetadataFilesystems(d.mountpoint)
 	}
 
 	// TODO: install bootloader

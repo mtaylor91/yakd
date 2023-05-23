@@ -1,5 +1,7 @@
 package bootstrap
 
+import "github.com/mtaylor91/yakd/pkg/os"
+
 const (
 	DefaultTargetMountpoint = "/mnt/target"
 )
@@ -11,10 +13,10 @@ type BootstrapConfig struct {
 	ESPPartition  string
 	RootPartition string
 	Mount         string
-	OS            OS
+	OSInstaller   os.OSInstaller
 }
 
 // NewBootstrapConfig initializes a new BootstrapConfig struct
-func NewBootstrapConfig(disk, esp, root, mount string, os OSFactory) *BootstrapConfig {
-	return &BootstrapConfig{true, disk, esp, root, mount, os.NewOS(mount)}
+func NewBootstrapConfig(disk, esp, root, mount string, os os.OS) *BootstrapConfig {
+	return &BootstrapConfig{true, disk, esp, root, mount, os.Installer(mount)}
 }

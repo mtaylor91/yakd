@@ -2,11 +2,11 @@ package bootstrap
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 
-	"github.com/mtaylor91/yakd/pkg/util"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/os"
+	"github.com/mtaylor91/yakd/pkg/util"
 )
 
 // TmpFS is a filesystem that is mounted as a tmpfs
@@ -33,15 +33,15 @@ func (t *TmpFS) Allocate() error {
 }
 
 // Bootstrap runs filesystem bootstrapping
-func (t *TmpFS) Bootstrap(osFactory OSFactory) error {
+func (t *TmpFS) Bootstrap(operatingSystem os.OS) error {
 	// Create mountpoint
 	if err := t.Allocate(); err != nil {
 		return err
 	}
 
 	// Bootstrap OS
-	os := osFactory.NewOS(t.Path)
-	err := os.Bootstrap()
+	installer := operatingSystem.Installer(t.Path)
+	err := installer.Bootstrap()
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (t *TmpFS) Bootstrap(osFactory OSFactory) error {
 
 	// Run post-bootstrap step
 	log.Infof("Running post-bootstrap step")
-	if err := os.PostBootstrap(); err != nil {
+	if err := installer.PostBootstrap(); err != nil {
 		return err
 	}
 
@@ -71,16 +71,9 @@ func (t *TmpFS) Destroy() {
 
 // MountTmpFSAt mounts a tmpfs at the given path
 func MountTmpFSAt(path string, sizeMB int) error {
-	mount, err := exec.LookPath("mount")
-	if err != nil {
-		return err
-	}
-
 	options := fmt.Sprintf("size=%dM", sizeMB)
-	cmd := exec.Command(mount, "-t", "tmpfs", "-o", options, "tmpfs", path)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	err := util.RunCmd("mount", "-t", "tmpfs", "-o", options, "tmpfs", path)
+	if err != nil {
 		return err
 	}
 
