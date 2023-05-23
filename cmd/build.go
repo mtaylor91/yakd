@@ -12,6 +12,7 @@ var BuildCmd = &cobra.Command{
 }
 
 func init() {
+	BuildCmd.AddCommand(build.DiskCmd)
 	BuildCmd.AddCommand(build.ImageCmd)
 	BuildCmd.AddCommand(build.Stage1Cmd)
 }

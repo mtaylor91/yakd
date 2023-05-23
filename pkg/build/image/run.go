@@ -14,7 +14,6 @@ import (
 func BuildImage(
 	force bool, sizeMB int,
 	stage1, target, mountpoint string,
-	noCleanup bool,
 ) error {
 	debian := debian.DebianDefault
 	raw := util.NewRawImage(target+".raw", sizeMB, true, true)

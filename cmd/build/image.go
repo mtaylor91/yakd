@@ -15,7 +15,6 @@ func init() {
 	f.String("stage1", "stage1.tar.gz", "Path to stage 1 tarball")
 	f.String("target", "yakd.qcow2", "Target path for image")
 	f.String("mountpoint", "/mnt/target", "Mountpoint for image build")
-	f.Bool("no-cleanup", false, "Do not cleanup after build")
 }
 
 var ImageCmd = &cobra.Command{
@@ -35,16 +34,14 @@ func BuildImage(cmd *cobra.Command, args []string) {
 	v.BindPFlag("stage1", f.Lookup("stage1"))
 	v.BindPFlag("target", f.Lookup("target"))
 	v.BindPFlag("mountpoint", f.Lookup("mountpoint"))
-	v.BindPFlag("no-cleanup", f.Lookup("no-cleanup"))
 
 	force := v.GetBool("force")
 	size := v.GetInt("size")
 	stage1 := v.GetString("stage1")
 	target := v.GetString("target")
 	mountpoint := v.GetString("mountpoint")
-	noCleanup := v.GetBool("no-cleanup")
 
-	err := image.BuildImage(force, size, stage1, target, mountpoint, noCleanup)
+	err := image.BuildImage(force, size, stage1, target, mountpoint)
 	if err != nil {
 		log.Fatal(err)
 	}
