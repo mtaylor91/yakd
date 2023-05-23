@@ -5,6 +5,8 @@ import (
 	"os/exec"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/util"
 )
 
 var basePackages = []string{
@@ -73,19 +75,10 @@ func holdPackages(target string, packages ...string) error {
 
 // installPackages is a helper function to install packages
 func installPackages(target string, packages ...string) error {
-	// Look for chroot
-	chroot, err := exec.LookPath("chroot")
-	if err != nil {
-		return err
-	}
-
 	// Update apt indices
 	log.Infof("Updating apt indices")
 	args := []string{target, "apt-get", "update"}
-	cmd := exec.Command(chroot, args...)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := util.RunCmd("chroot", args...); err != nil {
 		return err
 	}
 
@@ -93,10 +86,7 @@ func installPackages(target string, packages ...string) error {
 	log.Infof("Installing packages %v", packages)
 	args = []string{target, "apt-get", "install", "-y"}
 	args = append(args, packages...)
-	cmd = exec.Command(chroot, args...)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := util.RunCmd("chroot", args...); err != nil {
 		return err
 	}
 

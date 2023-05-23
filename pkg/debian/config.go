@@ -11,6 +11,12 @@ const (
 	DefaultMirror      = "http://deb.debian.org/debian"
 )
 
+var DebianDefault = &Debian{
+	DefaultSuite,
+	DefaultMirror,
+	DefaultDebootstrap,
+}
+
 var DefaultDebootstrapConfig = BootstrapConfig{
 	DefaultSuite,
 	DefaultMirror,
@@ -30,6 +36,10 @@ type Debian struct {
 	Suite       string
 	Mirror      string
 	Debootstrap string
+}
+
+func (d *Debian) Bootloader(target string) os.OSBootloader {
+	return NewGrubEFI(target)
 }
 
 func (d *Debian) Installer(target string) os.OSInstaller {

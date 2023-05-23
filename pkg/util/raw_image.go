@@ -1,6 +1,8 @@
 package util
 
 import (
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -54,6 +56,27 @@ func (i *RawImage) Attach() (*LoopDevice, error) {
 		log.Infof("Loop device path is %s", loopPath)
 
 		return &LoopDevice{loopPath}, nil
+	}
+}
+
+// Convert converts the image
+func (i *RawImage) Convert(output string) error {
+	// Convert image to qcow2
+	log.Infof("Converting image %s to qcow2", i.ImagePath)
+	format := filepath.Ext(output)[1:]
+	if err := RunCmd("qemu-img", "convert", "-f", "raw",
+		"-O", format, i.ImagePath, output); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Free removes the raw image
+func (i *RawImage) Free() {
+	err := os.Remove(i.ImagePath)
+	if err != nil {
+		log.Warnf("Failed to remove %s image: %s", i.ImagePath, err)
 	}
 }
 

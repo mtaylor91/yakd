@@ -10,7 +10,7 @@ func BuildStage1(
 	force bool, target, suite, mirror, mountpoint string,
 	tmpfsSize int, cleanup bool,
 ) error {
-	debian := &debian.Debian{}
+	debian := debian.DebianDefault
 	debian.Suite = suite
 	debian.Mirror = mirror
 

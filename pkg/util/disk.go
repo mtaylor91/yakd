@@ -4,6 +4,8 @@ import (
 	"path"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/os"
 )
 
 // Disk represents the bootstrap configuration for a disk
@@ -27,7 +29,7 @@ func NewDisk(devicePath, espPartition, rootPartition, mountpoint string, cleanup
 }
 
 // Populate populates the disk from the specified source
-func (d *Disk) Populate(source string) error {
+func (d *Disk) Populate(source string, os os.OS) error {
 	// Create mountpoint
 	log.Infof("Creating mountpoint %s", d.mountpoint)
 	if err := CreateMountpointAt(d.mountpoint); err != nil {
@@ -72,18 +74,19 @@ func (d *Disk) Populate(source string) error {
 	}
 
 	// Mount metadata filesystems
-	log.Infof("Mounting metadata filesystems on %s", d.mountpoint)
+	log.Infof("Mounting metadata filesystems")
 	if err := MountMetadataFilesystems(d.mountpoint); err != nil {
 		return err
 	}
 
-	if d.cleanup {
-		defer UnmountMetadataFilesystems(d.mountpoint)
-	}
+	defer UnmountMetadataFilesystems(d.mountpoint)
 
-	// TODO: install bootloader
+	// Install bootloader
 	log.Infof("Installing bootloader")
-	log.Errorf("Bootloader installation not implemented")
+	bootloader := os.Bootloader(d.mountpoint)
+	if err := bootloader.Install(d.DevicePath); err != nil {
+		return err
+	}
 
 	return nil
 }
