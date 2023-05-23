@@ -18,11 +18,11 @@ type Disk struct {
 }
 
 // NewDisk initializes a new Disk struct
-func NewDisk(devicePath, espPartition, rootPartition, mountpoint string, cleanup bool) *Disk {
+func NewDisk(devicePath, mountpoint string, cleanup bool) *Disk {
 	return &Disk{
 		DevicePath:    devicePath,
-		espPartition:  espPartition,
-		rootPartition: rootPartition,
+		espPartition:  devicePath + "p1",
+		rootPartition: devicePath + "p2",
 		mountpoint:    mountpoint,
 		cleanup:       cleanup,
 	}

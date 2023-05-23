@@ -2,12 +2,42 @@ package disk
 
 import (
 	"fmt"
+	"os"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/debian"
+	"github.com/mtaylor91/yakd/pkg/util"
 )
 
 // BuildDisk builds a disk from a stage1 tarball
 func BuildDisk(target, stage1, mountpoint string) error {
-	log.Infof("Building disk from %s", stage1)
-	return fmt.Errorf("Not implemented")
+	log.Infof("Building disk %s from %s", target, stage1)
+
+	debian := debian.DebianDefault
+
+	// Check if target exists
+	if _, err := os.Stat(target); err != nil {
+		return fmt.Errorf("target %s: %s", target, err)
+	}
+
+	// Check if stage1 exists
+	if _, err := os.Stat(stage1); err != nil {
+		return fmt.Errorf("stage1 tarball %s: %s", stage1, err)
+	}
+
+	// Partition disk
+	log.Infof("Partitioning %s", target)
+	if err := util.PartitionDisk(target); err != nil {
+		return fmt.Errorf("partitioning %s: %s", target, err)
+	}
+
+	// Populate disk
+	log.Infof("Populating %s", target)
+	disk := util.NewDisk(target, mountpoint, true)
+	if err := disk.Populate(stage1, debian); err != nil {
+		return fmt.Errorf("populating %s: %s", target, err)
+	}
+
+	return nil
 }

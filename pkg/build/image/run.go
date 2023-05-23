@@ -57,7 +57,7 @@ func BuildImage(
 
 	// Create partition table
 	log.Infof("Creating partition table on %s", raw.ImagePath)
-	if err := raw.Partition(); err != nil {
+	if err := util.PartitionDisk(raw.ImagePath); err != nil {
 		return err
 	}
 
@@ -76,12 +76,8 @@ func BuildImage(
 		return err
 	}
 
-	// Identify partitions
-	esp := loop.DevicePath + "p1"
-	root := loop.DevicePath + "p2"
-
 	// Initialize image loop device disk
-	d := util.NewDisk(loop.DevicePath, esp, root, mountpoint, true)
+	d := util.NewDisk(loop.DevicePath, mountpoint, true)
 
 	// Populate disk image
 	log.Infof("Populating disk image mounted at %s", mountpoint)
