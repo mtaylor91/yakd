@@ -9,8 +9,7 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(RunCmd)
-	RootCmd.AddCommand(ImageCmd)
+	RootCmd.AddCommand(BuildCmd)
 }
 
 func Main() {

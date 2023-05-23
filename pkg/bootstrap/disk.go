@@ -8,72 +8,71 @@ import (
 
 // Disk represents the bootstrap configuration for a disk
 type Disk struct {
-	Path          string
-	ESPPartition  string
-	RootPartition string
-	Mount         string
-	Cleanup       bool
-	OS            OS
+	devicePath    string
+	espPartition  string
+	rootPartition string
+	mountpoint    string
+	cleanup       bool
+}
+
+// NewDisk initializes a new Disk struct
+func NewDisk(devicePath, espPartition, rootPartition, mountpoint string, cleanup bool) *Disk {
+	return &Disk{
+		devicePath:    devicePath,
+		espPartition:  espPartition,
+		rootPartition: rootPartition,
+		mountpoint:    mountpoint,
+		cleanup:       cleanup,
+	}
 }
 
 // Bootstrap runs filesystem bootstrapping
 func (d *Disk) Bootstrap() error {
 	// Create mountpoint
-	log.Infof("Creating mountpoint %s", d.Mount)
-	if err := CreateMountpointAt(d.Mount); err != nil {
+	log.Infof("Creating mountpoint %s", d.mountpoint)
+	if err := CreateMountpointAt(d.mountpoint); err != nil {
 		return err
 	}
 
-	if d.Cleanup {
-		defer RemoveMountpointAt(d.Mount)
+	if d.cleanup {
+		defer RemoveMountpointAt(d.mountpoint)
 	}
 
 	// Mount root partition
-	log.Infof("Mounting root partition %s on %s", d.RootPartition, d.Mount)
-	if err := MountPartitionAt(d.RootPartition, d.Mount); err != nil {
+	log.Infof("Mounting root partition %s on %s", d.rootPartition, d.mountpoint)
+	if err := MountPartitionAt(d.rootPartition, d.mountpoint); err != nil {
 		return err
 	}
 
-	if d.Cleanup {
-		defer UnmountFilesystems(d.Mount)
-	}
-
-	// Bootstrap OS root filesystem
-	if err := d.OS.Bootstrap(); err != nil {
-		return err
+	if d.cleanup {
+		defer UnmountFilesystems(d.mountpoint)
 	}
 
 	// Mount metadata filesystems
-	log.Infof("Mounting metadata filesystems on %s", d.Mount)
-	if err := MountMetadataFilesystems(d.Mount); err != nil {
+	log.Infof("Mounting metadata filesystems on %s", d.mountpoint)
+	if err := MountMetadataFilesystems(d.mountpoint); err != nil {
 		return err
 	}
 
-	if d.Cleanup {
-		defer UnmountMetadataFilesystems(d.Mount)
+	if d.cleanup {
+		defer UnmountMetadataFilesystems(d.mountpoint)
 	}
 
 	// Create ESP mountpoint
-	esp := path.Join(d.Mount, "boot", "efi")
+	esp := path.Join(d.mountpoint, "boot", "efi")
 	log.Infof("Creating ESP mountpoint at %s", esp)
 	if err := CreateMountpointAt(esp); err != nil {
 		return err
 	}
 
 	// Mount ESP
-	log.Infof("Mounting ESP partition %s on %s", d.ESPPartition, esp)
-	if err := MountPartitionAt(d.ESPPartition, esp); err != nil {
+	log.Infof("Mounting ESP partition %s on %s", d.espPartition, esp)
+	if err := MountPartitionAt(d.espPartition, esp); err != nil {
 		return err
 	}
 
-	if d.Cleanup {
+	if d.cleanup {
 		defer UnmountFilesystems(esp)
-	}
-
-	// Run post-bootstrap step
-	log.Infof("Running post-bootstrap step")
-	if err := d.OS.PostBootstrap(); err != nil {
-		return err
 	}
 
 	return nil
