@@ -4,6 +4,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/mtaylor91/yakd/pkg/build/image"
 )
 
 func init() {
@@ -32,4 +34,15 @@ func BuildImage(cmd *cobra.Command, args []string) {
 	v.BindPFlag("target", f.Lookup("target"))
 	v.BindPFlag("mountpoint", f.Lookup("mountpoint"))
 	v.BindPFlag("no-cleanup", f.Lookup("no-cleanup"))
+
+	force := v.GetBool("force")
+	stage1 := v.GetString("stage1")
+	target := v.GetString("target")
+	mountpoint := v.GetString("mountpoint")
+	noCleanup := v.GetBool("no-cleanup")
+
+	err := image.BuildImage(force, stage1, target, mountpoint, noCleanup)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

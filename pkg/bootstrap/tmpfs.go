@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/mtaylor91/yakd/pkg/util"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -24,7 +25,7 @@ func NewTmpFS(path string, sizeMB int) *TmpFS {
 
 // Allocate creates the tmpfs
 func (t *TmpFS) Allocate() error {
-	if err := CreateMountpointAt(t.Path); err != nil {
+	if err := util.CreateMountpointAt(t.Path); err != nil {
 		return err
 	}
 
@@ -47,11 +48,11 @@ func (t *TmpFS) Bootstrap(osFactory OSFactory) error {
 
 	// Mount metadata filesystems
 	log.Infof("Mounting metadata filesystems on %s", t.Path)
-	if err := MountMetadataFilesystems(t.Path); err != nil {
+	if err := util.MountMetadataFilesystems(t.Path); err != nil {
 		return err
 	}
 
-	defer UnmountMetadataFilesystems(t.Path)
+	defer util.UnmountMetadataFilesystems(t.Path)
 
 	// Run post-bootstrap step
 	log.Infof("Running post-bootstrap step")
@@ -64,8 +65,8 @@ func (t *TmpFS) Bootstrap(osFactory OSFactory) error {
 
 // Destroy removes the tmpfs
 func (t *TmpFS) Destroy() {
-	UnmountFilesystems(t.Path)
-	RemoveMountpointAt(t.Path)
+	util.UnmountFilesystems(t.Path)
+	util.RemoveMountpointAt(t.Path)
 }
 
 // MountTmpFSAt mounts a tmpfs at the given path

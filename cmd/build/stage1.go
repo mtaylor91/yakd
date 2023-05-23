@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/mtaylor91/yakd/pkg/bootstrap"
+	"github.com/mtaylor91/yakd/pkg/build/stage1"
 	"github.com/mtaylor91/yakd/pkg/debian"
 )
 
@@ -40,33 +40,16 @@ func BuildStage1(cmd *cobra.Command, args []string) {
 	v.BindPFlag("tmpfs-size", f.Lookup("tmpfs-size"))
 	v.BindPFlag("no-cleanup", f.Lookup("no-cleanup"))
 
+	force := v.GetBool("force")
+	target := v.GetString("target")
+	suite := v.GetString("suite")
+	mirror := v.GetString("mirror")
+	mountpoint := v.GetString("mountpoint")
+	tmpfsSize := v.GetInt("tmpfs-size")
 	cleanup := !v.GetBool("no-cleanup")
 
-	debian := &debian.Debian{}
-	debian.Suite = v.GetString("suite")
-	debian.Mirror = v.GetString("mirror")
-
-	stage1 := &bootstrap.Stage1{
-		Source: v.GetString("mountpoint"),
-		Target: v.GetString("target"),
-	}
-
-	tmpfs := &bootstrap.TmpFS{
-		Path:   v.GetString("mountpoint"),
-		SizeMB: v.GetInt("tmpfs-size"),
-	}
-
-	err := tmpfs.Bootstrap(debian)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if cleanup {
-		defer tmpfs.Destroy()
-	}
-
-	err = stage1.BuildArchive()
-	if err != nil {
+	if err := stage1.BuildStage1(force, target, suite, mirror,
+		mountpoint, tmpfsSize, cleanup); err != nil {
 		log.Fatal(err)
 	}
 }
