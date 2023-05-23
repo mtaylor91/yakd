@@ -11,6 +11,7 @@ import (
 func init() {
 	f := ImageCmd.Flags()
 	f.BoolP("force", "f", false, "Overwrite existing image")
+	f.Int("size", 4096, "Image size in MB")
 	f.String("stage1", "stage1.tar.gz", "Path to stage 1 tarball")
 	f.String("target", "yakd.qcow2", "Target path for image")
 	f.String("mountpoint", "/mnt/target", "Mountpoint for image build")
@@ -30,18 +31,20 @@ func BuildImage(cmd *cobra.Command, args []string) {
 	v := viper.New()
 
 	v.BindPFlag("force", f.Lookup("force"))
+	v.BindPFlag("size", f.Lookup("size"))
 	v.BindPFlag("stage1", f.Lookup("stage1"))
 	v.BindPFlag("target", f.Lookup("target"))
 	v.BindPFlag("mountpoint", f.Lookup("mountpoint"))
 	v.BindPFlag("no-cleanup", f.Lookup("no-cleanup"))
 
 	force := v.GetBool("force")
+	size := v.GetInt("size")
 	stage1 := v.GetString("stage1")
 	target := v.GetString("target")
 	mountpoint := v.GetString("mountpoint")
 	noCleanup := v.GetBool("no-cleanup")
 
-	err := image.BuildImage(force, stage1, target, mountpoint, noCleanup)
+	err := image.BuildImage(force, size, stage1, target, mountpoint, noCleanup)
 	if err != nil {
 		log.Fatal(err)
 	}
