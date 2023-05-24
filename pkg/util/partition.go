@@ -5,7 +5,7 @@ import log "github.com/sirupsen/logrus"
 func PartitionDisk(name string) error {
 	// Create partition table
 	log.Infof("Creating partition table on %s", name)
-	if err := RunCmd("parted", "-s", name, "mklabel", "gpt"); err != nil {
+	if err := RunCmd("parted", "-s", name, "mklabel", "msdos"); err != nil {
 		return err
 	}
 
@@ -23,29 +23,10 @@ func PartitionDisk(name string) error {
 		return err
 	}
 
-	// Set boot flag on EFI partition
-	log.Infof("Setting boot flag on EFI partition on %s", name)
-	if err := RunCmd("parted", "-s", name,
-		"set", "1", "boot", "on"); err != nil {
-		return err
-	}
-
 	// Set esp flag on EFI partition
 	log.Infof("Setting esp flag on EFI partition on %s", name)
 	if err := RunCmd("parted", "-s", name,
 		"set", "1", "esp", "on"); err != nil {
-		return err
-	}
-
-	// Set root partition label
-	log.Infof("Setting root partition label on %s", name)
-	if err := RunCmd("parted", "-s", name, "name", "2", "root"); err != nil {
-		return err
-	}
-
-	// Set EFI partition label
-	log.Infof("Setting EFI partition label on %s", name)
-	if err := RunCmd("parted", "-s", name, "name", "1", "efi"); err != nil {
 		return err
 	}
 

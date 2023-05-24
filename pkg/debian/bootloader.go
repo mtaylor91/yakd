@@ -30,5 +30,11 @@ func (g *GrubEFI) Install(device string) error {
 		return err
 	}
 
+	// Run grub-mkconfig
+	log.Infof("Running grub-mkconfig")
+	if err := util.RunCmd("chroot", g.Target, "grub-mkconfig", "-o", "/boot/grub/grub.cfg"); err != nil {
+		return err
+	}
+
 	return nil
 }

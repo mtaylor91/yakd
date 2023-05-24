@@ -81,6 +81,13 @@ func (d *Disk) Populate(source string, os os.OS) error {
 
 	defer UnmountMetadataFilesystems(d.mountpoint)
 
+	// Configure filesystems
+	log.Infof("Configuring filesystems")
+	err := ConfigureFilesystems(d.mountpoint, d.rootPartition, d.espPartition)
+	if err != nil {
+		return err
+	}
+
 	// Install bootloader
 	log.Infof("Installing bootloader")
 	bootloader := os.Bootloader(d.mountpoint)
