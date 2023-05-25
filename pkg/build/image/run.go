@@ -59,7 +59,9 @@ func BuildImage(
 		return err
 	}
 
-	defer r.Free()
+	if !raw {
+		defer r.Free()
+	}
 
 	// Create partition table
 	log.Infof("Creating partition table on %s", r.ImagePath)
