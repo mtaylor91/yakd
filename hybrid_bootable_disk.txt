@@ -1,0 +1,12 @@
+Partition table:
+ - BIOS boot partition (sector 2048 - 10M)
+ - EFI System partition (10M - 512M)
+ - Linux filesystem (512M - end)
+
+The BIOS boot partition is a small partition (1MB) that is used by GRUB to
+store its core.img. It is not mounted anywhere.
+
+The EFI System partition is a small partition (100MB) that is used by GRUB
+to store its EFI images. It is mounted at /boot/efi.
+
+The Linux filesystem is the main partition. It is mounted at /.

@@ -1,6 +1,8 @@
 package build
 
 import (
+	"path/filepath"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,7 +43,12 @@ func BuildImage(cmd *cobra.Command, args []string) {
 	target := v.GetString("target")
 	mountpoint := v.GetString("mountpoint")
 
-	err := image.BuildImage(force, size, stage1, target, mountpoint)
+	raw := false
+	if filepath.Ext(target) == ".raw" {
+		raw = true
+	}
+
+	err := image.BuildImage(force, raw, size, stage1, target, mountpoint)
 	if err != nil {
 		log.Fatal(err)
 	}

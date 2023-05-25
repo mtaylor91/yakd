@@ -20,12 +20,12 @@ func (l *LoopDevice) Detach() {
 // Format formats the image partitions via the loop device
 func (l *LoopDevice) Format() error {
 	// Create FAT32 filesystem on EFI partition
-	if err := RunCmd("mkfs.vfat", "-F", "32", l.DevicePath+"p1"); err != nil {
+	if err := RunCmd("mkfs.vfat", "-F", "32", l.DevicePath+"p2"); err != nil {
 		return err
 	}
 
 	// Create ext4 filesystem on root partition
-	if err := RunCmd("mkfs.ext4", l.DevicePath+"p2"); err != nil {
+	if err := RunCmd("mkfs.ext4", l.DevicePath+"p3"); err != nil {
 		return err
 	}
 

@@ -11,6 +11,7 @@ import (
 // Disk represents the bootstrap configuration for a disk
 type Disk struct {
 	DevicePath    string
+	biosPartition string
 	espPartition  string
 	rootPartition string
 	mountpoint    string
@@ -21,8 +22,9 @@ type Disk struct {
 func NewDisk(devicePath, mountpoint string, cleanup bool) *Disk {
 	return &Disk{
 		DevicePath:    devicePath,
-		espPartition:  devicePath + "p1",
-		rootPartition: devicePath + "p2",
+		biosPartition: devicePath + "p1",
+		espPartition:  devicePath + "p2",
+		rootPartition: devicePath + "p3",
 		mountpoint:    mountpoint,
 		cleanup:       cleanup,
 	}

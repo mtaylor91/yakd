@@ -12,11 +12,17 @@ import (
 
 // BuildImage builds a yakd image from a stage1 tarball
 func BuildImage(
-	force bool, sizeMB int,
+	force, raw bool, sizeMB int,
 	stage1, target, mountpoint string,
 ) error {
 	debian := debian.DebianDefault
-	raw := util.NewRawImage(target+".raw", sizeMB, true, true)
+	rawName := target
+
+	if !raw {
+		rawName = target + ".raw"
+	}
+
+	r := util.NewRawImage(rawName, sizeMB, true, true)
 
 	// Check if target exists
 	if _, err := os.Stat(target); err == nil {
@@ -31,14 +37,14 @@ func BuildImage(
 	}
 
 	// Check if raw image exists
-	if _, err := os.Stat(raw.ImagePath); err == nil {
+	if _, err := os.Stat(r.ImagePath); err == nil {
 		if force {
 			// Remove raw image
-			if err := os.Remove(raw.ImagePath); err != nil {
+			if err := os.Remove(r.ImagePath); err != nil {
 				return fmt.Errorf("failed to remove raw image: %s", err)
 			}
 		} else {
-			return fmt.Errorf("raw image already exists: %s", raw.ImagePath)
+			return fmt.Errorf("raw image already exists: %s", r.ImagePath)
 		}
 	}
 
@@ -48,22 +54,22 @@ func BuildImage(
 	}
 
 	// Allocate raw image file
-	log.Infof("Creating raw image at %s", raw.ImagePath)
-	if err := raw.Alloc(); err != nil {
+	log.Infof("Creating raw image at %s", r.ImagePath)
+	if err := r.Alloc(); err != nil {
 		return err
 	}
 
-	defer raw.Free()
+	defer r.Free()
 
 	// Create partition table
-	log.Infof("Creating partition table on %s", raw.ImagePath)
-	if err := util.PartitionDisk(raw.ImagePath); err != nil {
+	log.Infof("Creating partition table on %s", r.ImagePath)
+	if err := util.PartitionDisk(r.ImagePath); err != nil {
 		return err
 	}
 
 	// Attach image
-	log.Infof("Attaching image %s", raw.ImagePath)
-	loop, err := raw.Attach()
+	log.Infof("Attaching image %s", r.ImagePath)
+	loop, err := r.Attach()
 	if err != nil {
 		return err
 	}
@@ -71,7 +77,7 @@ func BuildImage(
 	defer loop.Detach()
 
 	// Format image
-	log.Infof("Formatting image %s on %s", raw.ImagePath, loop.DevicePath)
+	log.Infof("Formatting image %s on %s", r.ImagePath, loop.DevicePath)
 	if err := loop.Format(); err != nil {
 		return err
 	}
@@ -85,10 +91,12 @@ func BuildImage(
 		return err
 	}
 
-	// Convert image to qcow2
-	log.Infof("Converting image %s to %s", raw.ImagePath, target)
-	if err := raw.Convert(target); err != nil {
-		return err
+	if !raw {
+		// Convert image to qcow2
+		log.Infof("Converting image %s to %s", r.ImagePath, target)
+		if err := r.Convert(target); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -19,7 +19,7 @@ func NewGrubEFI(target string) *GrubEFI {
 
 func (g *GrubEFI) Install(device string) error {
 	// Install grub-efi
-	log.Infof("Installing grub-efi")
+	log.Infof("Installing grub")
 	if err := installPackages(g.Target, "grub-efi"); err != nil {
 		return err
 	}
