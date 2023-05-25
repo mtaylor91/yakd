@@ -4,6 +4,9 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var Default = &LocalExecutor{}
@@ -24,6 +27,7 @@ func (l *LocalExecutor) GetOutputWithStdin(
 		return nil, err
 	}
 
+	log.Debugf("Getting output of: %s %s", cmd, strings.Join(args, " "))
 	c := exec.Command(cmd, args...)
 	c.Stdin = stdin
 	return c.Output()
@@ -43,6 +47,7 @@ func (l *LocalExecutor) RunCmdWithStdin(
 		return err
 	}
 
+	log.Debugf("Running command: %s %s", cmd, strings.Join(args, " "))
 	c := exec.Command(cmd, args...)
 	c.Stdin = stdin
 	c.Stdout = os.Stderr

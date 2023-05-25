@@ -23,7 +23,7 @@ func (c *ChrootExecutor) GetOutputWithStdin(
 	}
 
 	return executor.Default.GetOutputWithStdin(
-		"chroot", stdin, append([]string{cmd}, args...)...,
+		"chroot", stdin, append([]string{c.root, cmd}, args...)...,
 	)
 }
 
@@ -44,6 +44,6 @@ func (c *ChrootExecutor) RunCmdWithStdin(
 	}
 
 	return executor.Default.RunCmdWithStdin(
-		"chroot", stdin, append([]string{cmd}, args...)...,
+		"chroot", stdin, append([]string{c.root, cmd}, args...)...,
 	)
 }

@@ -1,9 +1,6 @@
 package debian
 
 import (
-	"os"
-	"os/exec"
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mtaylor91/yakd/pkg/util/executor"
@@ -17,15 +14,8 @@ func (c *BootstrapConfig) Bootstrap() error {
 		debootstrap = c.Debootstrap
 	}
 
-	debootstrap, err := exec.LookPath(debootstrap)
+	err := executor.Default.RunCmd(debootstrap, c.Suite, c.Target, c.Mirror)
 	if err != nil {
-		return err
-	}
-
-	cmd := exec.Command(debootstrap, c.Suite, c.Target, c.Mirror)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
 		return err
 	}
 
