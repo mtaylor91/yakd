@@ -49,6 +49,11 @@ func (c *BootstrapConfig) PostBootstrap(chroot executor.Executor) error {
 		return err
 	}
 
+	// Configure the admin user
+	if err := configureAdminUser(chroot); err != nil {
+		return err
+	}
+
 	// Install kernel
 	if err := c.installKernel(chroot); err != nil {
 		return err

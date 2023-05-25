@@ -1,7 +1,6 @@
 High priority
 - Update resolv.conf
 Medium priority:
-- Check/fix mount cleanup in tmpfs bootstrapping
 - Set hostname
 - Support multiarch
   * arm64 kernel / bootloader

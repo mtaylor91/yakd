@@ -8,8 +8,8 @@ import (
 )
 
 const fstabTemplate = `# <filesystem> <mountpoint> <type> <options> <dump> <pass>
-{{.RootPartitionUUID}} / ext4 defaults 0 1
-{{.ESPPartitionUUID}} /boot/efi vfat defaults 0 1
+UUID={{.RootPartitionUUID}} / ext4 defaults 0 1
+UUID={{.ESPPartitionUUID}} /boot/efi vfat defaults 0 1
 `
 
 // ConfigureFilesystems configures the filesystems on the specified disk

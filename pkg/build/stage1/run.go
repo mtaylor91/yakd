@@ -8,7 +8,7 @@ import (
 // BuildStage1 builds a stage1 tarball
 func BuildStage1(
 	force bool, target, suite, mirror, mountpoint string,
-	tmpfsSize int, cleanup bool,
+	tmpfsSize int,
 ) error {
 	debian := debian.DebianDefault
 	debian.Suite = suite
@@ -27,10 +27,6 @@ func BuildStage1(
 	err := tmpfs.Bootstrap(debian)
 	if err != nil {
 		return err
-	}
-
-	if cleanup {
-		defer tmpfs.Destroy()
 	}
 
 	err = stage1.BuildArchive()

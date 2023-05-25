@@ -34,8 +34,8 @@ func BuildDisk(target, stage1, mountpoint string) error {
 
 	// Populate disk
 	log.Infof("Populating %s", target)
-	disk := util.NewDisk(target, mountpoint, true)
-	if err := disk.Populate(stage1, debian); err != nil {
+	d := util.NewDisk(target, mountpoint, true)
+	if err := d.Populate(stage1, debian); err != nil {
 		return fmt.Errorf("populating %s: %s", target, err)
 	}
 

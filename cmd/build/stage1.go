@@ -17,7 +17,6 @@ func init() {
 	f.String("mirror", debian.DefaultMirror, "Debian mirror")
 	f.String("mountpoint", "/mnt/target", "Mountpoint for stage 1 build")
 	f.Int("tmpfs-size", 4096, "tmpfs size in MB")
-	f.Bool("no-cleanup", false, "Do not cleanup after build")
 }
 
 var Stage1 = &cobra.Command{
@@ -38,7 +37,6 @@ func BuildStage1(cmd *cobra.Command, args []string) {
 	v.BindPFlag("mirror", f.Lookup("mirror"))
 	v.BindPFlag("mountpoint", f.Lookup("mountpoint"))
 	v.BindPFlag("tmpfs-size", f.Lookup("tmpfs-size"))
-	v.BindPFlag("no-cleanup", f.Lookup("no-cleanup"))
 
 	force := v.GetBool("force")
 	target := v.GetString("target")
@@ -46,10 +44,9 @@ func BuildStage1(cmd *cobra.Command, args []string) {
 	mirror := v.GetString("mirror")
 	mountpoint := v.GetString("mountpoint")
 	tmpfsSize := v.GetInt("tmpfs-size")
-	cleanup := !v.GetBool("no-cleanup")
 
-	if err := stage1.BuildStage1(force, target, suite, mirror,
-		mountpoint, tmpfsSize, cleanup); err != nil {
+	err := stage1.BuildStage1(force, target, suite, mirror, mountpoint, tmpfsSize)
+	if err != nil {
 		log.Fatal(err)
 	}
 }

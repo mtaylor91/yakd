@@ -40,6 +40,8 @@ func (t *TmpFS) Bootstrap(operatingSystem os.OS) error {
 		return err
 	}
 
+	defer t.Destroy()
+
 	// Bootstrap OS
 	installer := operatingSystem.Installer(t.Path)
 	err := installer.Bootstrap()
