@@ -2,42 +2,26 @@ package util
 
 import (
 	"io"
-	"os"
-	"os/exec"
+
+	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 // GetOutput runs a command and returns the output.
 func GetOutput(cmd string, args ...string) ([]byte, error) {
-	return GetOutputWithStdin(cmd, nil, args...)
+	return executor.Default.GetOutput(cmd, args...)
 }
 
 // GetOutputWithStdin runs a command and returns the output.
 func GetOutputWithStdin(cmd string, stdin io.Reader, args ...string) ([]byte, error) {
-	cmd, err := exec.LookPath(cmd)
-	if err != nil {
-		return nil, err
-	}
-
-	c := exec.Command(cmd, args...)
-	c.Stdin = stdin
-	return c.Output()
+	return executor.Default.GetOutputWithStdin(cmd, stdin, args...)
 }
 
 // RunCmd runs a command with output redirected to stderr.
 func RunCmd(cmd string, args ...string) error {
-	return RunCmdWithStdin(cmd, nil, args...)
+	return executor.Default.RunCmd(cmd, args...)
 }
 
 // RunCmdWithStdin runs a command with output redirected to stderr.
 func RunCmdWithStdin(cmd string, stdin io.Reader, args ...string) error {
-	cmd, err := exec.LookPath(cmd)
-	if err != nil {
-		return err
-	}
-
-	c := exec.Command(cmd, args...)
-	c.Stdin = stdin
-	c.Stdout = os.Stderr
-	c.Stderr = os.Stderr
-	return c.Run()
+	return executor.Default.RunCmdWithStdin(cmd, stdin, args...)
 }
