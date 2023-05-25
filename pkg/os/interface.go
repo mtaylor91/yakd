@@ -1,6 +1,10 @@
 package os
 
+import "github.com/mtaylor91/yakd/pkg/util/executor"
+
 type OS interface {
 	Installer(target string) OSInstaller
-	Bootloader(target string) OSBootloader
+	BootloaderInstaller(
+		device, target string, exec executor.Executor,
+	) OSBootloaderInstaller
 }

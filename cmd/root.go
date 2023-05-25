@@ -1,17 +1,14 @@
 package cmd
 
 import (
+	"github.com/mtaylor91/yakd/cmd/build"
 	"github.com/spf13/cobra"
 )
 
-var RootCmd = &cobra.Command{
+var Root = &cobra.Command{
 	Use: "yakd",
 }
 
 func init() {
-	RootCmd.AddCommand(BuildCmd)
-}
-
-func Main() {
-	RootCmd.Execute()
+	Root.AddCommand(build.Root)
 }

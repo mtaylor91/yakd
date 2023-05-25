@@ -7,6 +7,7 @@ import (
 
 	"github.com/mtaylor91/yakd/pkg/os"
 	"github.com/mtaylor91/yakd/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util/chroot"
 )
 
 // TmpFS is a filesystem that is mounted as a tmpfs
@@ -46,17 +47,14 @@ func (t *TmpFS) Bootstrap(operatingSystem os.OS) error {
 		return err
 	}
 
-	// Mount metadata filesystems
-	log.Infof("Mounting metadata filesystems on %s", t.Path)
-	if err := util.MountMetadataFilesystems(t.Path); err != nil {
-		return err
-	}
-
-	defer util.UnmountMetadataFilesystems(t.Path)
+	// Setup chroot executor
+	log.Infof("Setting up chroot at %s", t.Path)
+	chrootExecutor := chroot.NewExecutor(t.Path)
+	defer chrootExecutor.Teardown()
 
 	// Run post-bootstrap step
 	log.Infof("Running post-bootstrap step")
-	if err := installer.PostBootstrap(); err != nil {
+	if err := installer.PostBootstrap(chrootExecutor); err != nil {
 		return err
 	}
 

@@ -3,6 +3,7 @@ package debian
 import (
 	"github.com/mtaylor91/yakd/pkg/bootstrap"
 	"github.com/mtaylor91/yakd/pkg/os"
+	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 const (
@@ -38,8 +39,10 @@ type Debian struct {
 	Debootstrap string
 }
 
-func (d *Debian) Bootloader(target string) os.OSBootloader {
-	return NewGrubEFI(target)
+func (d *Debian) BootloaderInstaller(
+	device, target string, exec executor.Executor,
+) os.OSBootloaderInstaller {
+	return NewGrubInstaller(device, target, exec)
 }
 
 func (d *Debian) Installer(target string) os.OSInstaller {

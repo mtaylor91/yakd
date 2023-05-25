@@ -1,12 +1,9 @@
 package debian
 
 import (
-	"os"
-	"os/exec"
-
 	log "github.com/sirupsen/logrus"
 
-	"github.com/mtaylor91/yakd/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 var basePackages = []string{
@@ -27,9 +24,9 @@ var kubePackages = []string{
 }
 
 // installBasePackages installs the base packages
-func installBasePackages(target string) error {
+func installBasePackages(exec executor.Executor) error {
 	// Install packages
-	if err := installPackages(target, basePackages...); err != nil {
+	if err := installPackages(exec, basePackages...); err != nil {
 		return err
 	}
 
@@ -37,14 +34,14 @@ func installBasePackages(target string) error {
 }
 
 // installKubePackages installs the Kubernetes packages
-func installKubePackages(target string) error {
+func installKubePackages(exec executor.Executor) error {
 	// Install packages
-	if err := installPackages(target, kubePackages...); err != nil {
+	if err := installPackages(exec, kubePackages...); err != nil {
 		return err
 	}
 
 	// Hold packages
-	if err := holdPackages(target, kubePackages...); err != nil {
+	if err := holdPackages(exec, kubePackages...); err != nil {
 		return err
 	}
 
@@ -52,21 +49,11 @@ func installKubePackages(target string) error {
 }
 
 // holdPackages is a helper function to hold packages at a specific version
-func holdPackages(target string, packages ...string) error {
-	// Look for chroot
-	chroot, err := exec.LookPath("chroot")
-	if err != nil {
-		return err
-	}
-
+func holdPackages(exec executor.Executor, packages ...string) error {
 	// Hold packages
 	log.Infof("Holding packages %v", packages)
-	args := []string{target, "apt-mark", "hold"}
-	args = append(args, packages...)
-	cmd := exec.Command(chroot, args...)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	args := append([]string{"hold"}, packages...)
+	if err := exec.RunCmd("apt-mark", args...); err != nil {
 		return err
 	}
 
@@ -74,19 +61,17 @@ func holdPackages(target string, packages ...string) error {
 }
 
 // installPackages is a helper function to install packages
-func installPackages(target string, packages ...string) error {
+func installPackages(exec executor.Executor, packages ...string) error {
 	// Update apt indices
 	log.Infof("Updating apt indices")
-	args := []string{target, "apt-get", "update"}
-	if err := util.RunCmd("chroot", args...); err != nil {
+	if err := exec.RunCmd("apt-get", "update"); err != nil {
 		return err
 	}
 
 	// Install packages
 	log.Infof("Installing packages %v", packages)
-	args = []string{target, "apt-get", "install", "-y"}
-	args = append(args, packages...)
-	if err := util.RunCmd("chroot", args...); err != nil {
+	args := append([]string{"install", "-y"}, packages...)
+	if err := exec.RunCmd("apt-get", args...); err != nil {
 		return err
 	}
 

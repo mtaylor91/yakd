@@ -5,6 +5,8 @@ import (
 	"os/exec"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 // Bootstrap uses debootstrap to bootstrap a Debian system
@@ -31,14 +33,14 @@ func (c *BootstrapConfig) Bootstrap() error {
 }
 
 // PostBootstrap runs post-bootstrap steps
-func (c *BootstrapConfig) PostBootstrap() error {
+func (c *BootstrapConfig) PostBootstrap(chroot executor.Executor) error {
 	// Configure locales
-	if err := configureLocales(c.Target); err != nil {
+	if err := configureLocales(chroot, c.Target); err != nil {
 		return err
 	}
 
 	// Install base packages
-	if err := installBasePackages(c.Target); err != nil {
+	if err := installBasePackages(chroot); err != nil {
 		return err
 	}
 
@@ -48,7 +50,7 @@ func (c *BootstrapConfig) PostBootstrap() error {
 	}
 
 	// Install Kubernetes packages
-	if err := installKubePackages(c.Target); err != nil {
+	if err := installKubePackages(chroot); err != nil {
 		return err
 	}
 
@@ -58,7 +60,7 @@ func (c *BootstrapConfig) PostBootstrap() error {
 	}
 
 	// Install kernel
-	if err := c.installKernel(); err != nil {
+	if err := c.installKernel(chroot); err != nil {
 		return err
 	}
 

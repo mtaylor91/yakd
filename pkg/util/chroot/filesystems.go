@@ -1,4 +1,4 @@
-package util
+package chroot
 
 import (
 	"os/exec"
@@ -15,9 +15,9 @@ func MountMetadataFilesystems(root string) error {
 	}
 
 	commands := []*exec.Cmd{
+		exec.Command(mount, "-t", "proc", "/proc", path.Join(root, "proc")),
 		exec.Command(mount, "--rbind", "/dev", path.Join(root, "dev")),
 		exec.Command(mount, "--make-rslave", path.Join(root, "dev")),
-		exec.Command(mount, "-t", "proc", "/proc", path.Join(root, "proc")),
 		exec.Command(mount, "--rbind", "/sys", path.Join(root, "sys")),
 		exec.Command(mount, "--make-rslave", path.Join(root, "sys")),
 		exec.Command(mount, "--bind", "/run", path.Join(root, "run")),
@@ -33,22 +33,6 @@ func MountMetadataFilesystems(root string) error {
 	return nil
 }
 
-// RemoveMountpointAt removes the specified mountpoint
-func RemoveMountpointAt(p string) {
-	// Remove mountpoint
-	if err := RunCmd("rmdir", p); err != nil {
-		log.Errorf("Remove %s failed: %s", p, err)
-	}
-}
-
-// UnmountFilesystems recursively unmounts the specified filesystem(s)
-func UnmountFilesystems(p string) {
-	// Unmount filesystem
-	if err := RunCmd("umount", "-R", p); err != nil {
-		log.Errorf("Unmount %s failed: %s", p, err)
-	}
-}
-
 // UnmountMetadataFilesystems destroys the mountpoints for the bootstrap
 func UnmountMetadataFilesystems(root string) {
 	umount, err := exec.LookPath("umount")
@@ -57,10 +41,10 @@ func UnmountMetadataFilesystems(root string) {
 	}
 
 	commands := []*exec.Cmd{
+		exec.Command(umount, "-R", path.Join(root, "run")),
+		exec.Command(umount, "-R", path.Join(root, "sys")),
 		exec.Command(umount, "-R", path.Join(root, "dev")),
 		exec.Command(umount, "-R", path.Join(root, "proc")),
-		exec.Command(umount, "-R", path.Join(root, "sys")),
-		exec.Command(umount, "-R", path.Join(root, "run")),
 	}
 
 	for _, cmd := range commands {

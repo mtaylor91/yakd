@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mtaylor91/yakd/pkg/os"
+	"github.com/mtaylor91/yakd/pkg/util/chroot"
 )
 
 // Disk represents the bootstrap configuration for a disk
@@ -75,13 +76,10 @@ func (d *Disk) Populate(source string, os os.OS) error {
 		return err
 	}
 
-	// Mount metadata filesystems
-	log.Infof("Mounting metadata filesystems")
-	if err := MountMetadataFilesystems(d.mountpoint); err != nil {
-		return err
-	}
-
-	defer UnmountMetadataFilesystems(d.mountpoint)
+	// Setup chroot executor
+	log.Infof("Setting up chroot")
+	chrootExecutor := chroot.NewExecutor(d.mountpoint)
+	defer chrootExecutor.Teardown()
 
 	// Configure filesystems
 	log.Infof("Configuring filesystems")
@@ -92,8 +90,8 @@ func (d *Disk) Populate(source string, os os.OS) error {
 
 	// Install bootloader
 	log.Infof("Installing bootloader")
-	bootloader := os.Bootloader(d.mountpoint)
-	if err := bootloader.Install(d.DevicePath); err != nil {
+	bootloader := os.BootloaderInstaller(d.DevicePath, d.mountpoint, chrootExecutor)
+	if err := bootloader.Install(); err != nil {
 		return err
 	}
 

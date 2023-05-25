@@ -1,26 +1,16 @@
 package debian
 
 import (
-	"os"
-	"os/exec"
-
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 // installKernel installs the kernel specified in the kernel string
-func (c *BootstrapConfig) installKernel() error {
-	// Look for chroot
-	chroot, err := exec.LookPath("chroot")
-	if err != nil {
-		return err
-	}
-
+func (c *BootstrapConfig) installKernel(exec executor.Executor) error {
 	// Install kernel
 	log.Infof("Installing kernel")
-	cmd := exec.Command(chroot, c.Target, "apt-get", "install", "-y", "linux-image-amd64")
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := installPackages(exec, "linux-image-amd64"); err != nil {
 		return err
 	}
 

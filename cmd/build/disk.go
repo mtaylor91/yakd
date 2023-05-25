@@ -9,12 +9,12 @@ import (
 )
 
 func init() {
-	f := DiskCmd.Flags()
+	f := Disk.Flags()
 	f.String("stage1", "stage1.tar.gz", "Path to stage1 tarball")
 	f.String("mountpoint", "/mnt/target", "Path to mount the target filesystem")
 }
 
-var DiskCmd = &cobra.Command{
+var Disk = &cobra.Command{
 	Use:   "disk TARGET",
 	Short: "Build a disk image",
 	Args:  cobra.ExactArgs(1),

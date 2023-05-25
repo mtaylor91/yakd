@@ -16,7 +16,9 @@ func (l *LocalExecutor) GetOutput(cmd string, args ...string) ([]byte, error) {
 }
 
 // GetOutputWithStdin runs a command and returns the output.
-func (l *LocalExecutor) GetOutputWithStdin(cmd string, stdin io.Reader, args ...string) ([]byte, error) {
+func (l *LocalExecutor) GetOutputWithStdin(
+	cmd string, stdin io.Reader, args ...string,
+) ([]byte, error) {
 	cmd, err := exec.LookPath(cmd)
 	if err != nil {
 		return nil, err
@@ -33,7 +35,9 @@ func (l *LocalExecutor) RunCmd(cmd string, args ...string) error {
 }
 
 // RunCmdWithStdin runs a command with output redirected to stderr.
-func (l *LocalExecutor) RunCmdWithStdin(cmd string, stdin io.Reader, args ...string) error {
+func (l *LocalExecutor) RunCmdWithStdin(
+	cmd string, stdin io.Reader, args ...string,
+) error {
 	cmd, err := exec.LookPath(cmd)
 	if err != nil {
 		return err

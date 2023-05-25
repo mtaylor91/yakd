@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	f := Stage1Cmd.Flags()
+	f := Stage1.Flags()
 	f.BoolP("force", "f", false, "Overwrite existing stage 1")
 	f.String("target", "stage1.tar.gz", "Target path for stage 1")
 	f.String("suite", debian.DefaultSuite, "Debian suite")
@@ -20,7 +20,7 @@ func init() {
 	f.Bool("no-cleanup", false, "Do not cleanup after build")
 }
 
-var Stage1Cmd = &cobra.Command{
+var Stage1 = &cobra.Command{
 	Use:   "stage1",
 	Short: "Stage 1 of image build",
 	Run:   BuildStage1,

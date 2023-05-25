@@ -1,5 +1,5 @@
 High priority
-- Update fstab
+- Update resolv.conf
 Medium priority:
 - Set hostname
 - Support multiarch

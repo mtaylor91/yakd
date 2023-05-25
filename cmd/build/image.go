@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	f := ImageCmd.Flags()
+	f := Image.Flags()
 	f.BoolP("force", "f", false, "Overwrite existing image")
 	f.Int("size", 4096, "Image size in MB")
 	f.String("stage1", "stage1.tar.gz", "Path to stage 1 tarball")
@@ -19,7 +19,7 @@ func init() {
 	f.String("mountpoint", "/mnt/target", "Mountpoint for image build")
 }
 
-var ImageCmd = &cobra.Command{
+var Image = &cobra.Command{
 	Use:   "image",
 	Short: "Build image from stage1 tarball",
 	Run:   BuildImage,
