@@ -31,7 +31,8 @@ func (g *GrubInstaller) Install(ctx context.Context) error {
 
 	// Run grub-install
 	log.Infof("Running grub-install")
-	err := g.Executor.RunCmd(ctx, "grub-install", "--removable", g.Device)
+	err := g.Executor.RunCmd(
+		ctx, "grub-install", "--force-extra-removable", g.Device)
 	if err != nil {
 		return err
 	}
