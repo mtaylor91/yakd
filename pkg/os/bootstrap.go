@@ -6,7 +6,7 @@ import (
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
-type OSInstaller interface {
+type OSBootstrapInstaller interface {
 	Bootstrap(ctx context.Context) error
 	PostBootstrap(ctx context.Context, chroot executor.Executor) error
 }

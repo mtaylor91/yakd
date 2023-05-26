@@ -8,15 +8,18 @@ const (
 
 // BootstrapConfig represents the configuration for a bootstrap
 type BootstrapConfig struct {
-	Cleanup       bool
-	Disk          string
-	ESPPartition  string
-	RootPartition string
-	Mount         string
-	OSInstaller   os.OSInstaller
+	Cleanup              bool
+	Disk                 string
+	ESPPartition         string
+	RootPartition        string
+	Mount                string
+	OSBootstrapInstaller os.OSBootstrapInstaller
 }
 
 // NewBootstrapConfig initializes a new BootstrapConfig struct
 func NewBootstrapConfig(disk, esp, root, mount string, os os.OS) *BootstrapConfig {
-	return &BootstrapConfig{true, disk, esp, root, mount, os.Installer(mount)}
+	return &BootstrapConfig{
+		true, disk, esp, root, mount,
+		os.BootstrapInstaller(mount),
+	}
 }

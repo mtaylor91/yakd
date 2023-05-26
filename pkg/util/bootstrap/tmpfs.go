@@ -38,7 +38,7 @@ func (t *TmpFS) Allocate(ctx context.Context) error {
 // Bootstrap runs filesystem bootstrapping
 func (t *TmpFS) Bootstrap(ctx context.Context, operatingSystem os.OS) error {
 	// Bootstrap OS
-	installer := operatingSystem.Installer(t.Path)
+	installer := operatingSystem.BootstrapInstaller(t.Path)
 	err := installer.Bootstrap(ctx)
 	if err != nil {
 		return err

@@ -12,5 +12,9 @@ func configureAdminUser(ctx context.Context, exec executor.Executor) error {
 		return err
 	}
 
+	if err := exec.RunCmd(ctx, "passwd", "-d", "admin"); err != nil {
+		return err
+	}
+
 	return nil
 }

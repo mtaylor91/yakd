@@ -45,7 +45,7 @@ func (d *Debian) BootloaderInstaller(
 	return NewGrubInstaller(device, target, exec)
 }
 
-func (d *Debian) Installer(target string) os.OSInstaller {
+func (d *Debian) BootstrapInstaller(target string) os.OSBootstrapInstaller {
 	return NewBootstrapConfig(target)
 }
 
