@@ -37,13 +37,6 @@ func (t *TmpFS) Allocate(ctx context.Context) error {
 
 // Bootstrap runs filesystem bootstrapping
 func (t *TmpFS) Bootstrap(ctx context.Context, operatingSystem os.OS) error {
-	// Create mountpoint
-	if err := t.Allocate(ctx); err != nil {
-		return err
-	}
-
-	defer t.Destroy()
-
 	// Bootstrap OS
 	installer := operatingSystem.Installer(t.Path)
 	err := installer.Bootstrap(ctx)

@@ -2,6 +2,8 @@ package stage1
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 
@@ -17,6 +19,18 @@ func BuildStage1(
 	target, suite, mirror, mountpoint string,
 	tmpfsSize int,
 ) error {
+	// Check if target exists
+	if _, err := os.Stat(target); err == nil {
+		if force {
+			// Remove target
+			if err := os.Remove(target); err != nil {
+				return fmt.Errorf("failed to remove target: %s", err)
+			}
+		} else {
+			return fmt.Errorf("target already exists: %s", target)
+		}
+	}
+
 	debian := debian.DebianDefault
 	debian.Suite = suite
 	debian.Mirror = mirror
@@ -25,6 +39,13 @@ func BuildStage1(
 		Path:   mountpoint,
 		SizeMB: tmpfsSize,
 	}
+
+	// Create mountpoint
+	if err := tmpfs.Allocate(ctx); err != nil {
+		return err
+	}
+
+	defer tmpfs.Destroy()
 
 	err := tmpfs.Bootstrap(ctx, debian)
 	if err != nil {
