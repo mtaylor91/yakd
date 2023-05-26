@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -71,6 +72,10 @@ func BuildImage(
 		return err
 	}
 
+	// Sleep to allow kernel to update partition table
+	log.Infof("Sleeping for 5 seconds to allow kernel to update partition table")
+	time.Sleep(5 * time.Second)
+
 	// Attach image
 	log.Infof("Attaching image %s", r.ImagePath)
 	loop, err := r.Attach(ctx)
@@ -80,14 +85,17 @@ func BuildImage(
 
 	defer loop.Detach()
 
-	// Format image
-	log.Infof("Formatting image %s on %s", r.ImagePath, loop.DevicePath)
-	if err := loop.Format(ctx); err != nil {
+	// Initialize image loop device disk
+	d, err := util.NewDisk(loop.DevicePath, mountpoint, true)
+	if err != nil {
 		return err
 	}
 
-	// Initialize image loop device disk
-	d := util.NewDisk(loop.DevicePath, mountpoint, true)
+	// Format disk image partitions
+	log.Infof("Formatting image %s on %s", r.ImagePath, loop.DevicePath)
+	if err := d.Format(ctx); err != nil {
+		return err
+	}
 
 	// Populate disk image
 	log.Infof("Populating disk image mounted at %s", mountpoint)

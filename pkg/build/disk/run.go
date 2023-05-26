@@ -33,9 +33,20 @@ func BuildDisk(ctx context.Context, target, stage1, mountpoint string) error {
 		return fmt.Errorf("partitioning %s: %s", target, err)
 	}
 
+	// Initialize disk
+	d, err := util.NewDisk(target, mountpoint, true)
+	if err != nil {
+		return fmt.Errorf("initializing disk: %s", err)
+	}
+
+	// Format disk partitions
+	log.Infof("Formatting %s", target)
+	if err := d.Format(ctx); err != nil {
+		return err
+	}
+
 	// Populate disk
 	log.Infof("Populating %s", target)
-	d := util.NewDisk(target, mountpoint, true)
 	if err := d.Populate(ctx, stage1, debian); err != nil {
 		return fmt.Errorf("populating %s: %s", target, err)
 	}
