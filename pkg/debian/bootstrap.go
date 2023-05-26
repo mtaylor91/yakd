@@ -47,7 +47,12 @@ func (c *BootstrapConfig) PostBootstrap(ctx context.Context, chroot executor.Exe
 	}
 
 	// Configure system for kubernetes
-	if err := configureKubernetes(ctx, c.Target); err != nil {
+	if err := configureKubernetes(ctx, chroot, c.Target); err != nil {
+		return err
+	}
+
+	// Configure networking
+	if err := configureNetworking(ctx, chroot, c.Target); err != nil {
 		return err
 	}
 
