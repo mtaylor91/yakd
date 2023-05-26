@@ -45,7 +45,9 @@ func BuildStage1(cmd *cobra.Command, args []string) {
 	mountpoint := v.GetString("mountpoint")
 	tmpfsSize := v.GetInt("tmpfs-size")
 
-	err := stage1.BuildStage1(force, target, suite, mirror, mountpoint, tmpfsSize)
+	ctx := cmd.Context()
+	err := stage1.BuildStage1(
+		ctx, force, target, suite, mirror, mountpoint, tmpfsSize)
 	if err != nil {
 		log.Fatal(err)
 	}

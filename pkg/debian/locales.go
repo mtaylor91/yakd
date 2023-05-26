@@ -1,6 +1,7 @@
 package debian
 
 import (
+	"context"
 	"os"
 	"path"
 
@@ -15,9 +16,9 @@ en_US.UTF-8 UTF-8
 `
 
 // configureLocales configures the locales
-func configureLocales(exec executor.Executor, root string) error {
+func configureLocales(ctx context.Context, exec executor.Executor, root string) error {
 	// Install locales
-	if err := installPackages(exec, "locales"); err != nil {
+	if err := installPackages(ctx, exec, "locales"); err != nil {
 		return err
 	}
 
@@ -30,7 +31,7 @@ func configureLocales(exec executor.Executor, root string) error {
 
 	// Configure locales
 	log.Infof("Configuring locales")
-	if err := exec.RunCmd("locale-gen"); err != nil {
+	if err := exec.RunCmd(ctx, "locale-gen"); err != nil {
 		return err
 	}
 

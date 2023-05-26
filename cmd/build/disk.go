@@ -33,7 +33,8 @@ func BuildDisk(cmd *cobra.Command, args []string) {
 	stage1 := v.GetString("stage1")
 	mountpoint := v.GetString("mountpoint")
 
-	if err := disk.BuildDisk(target, stage1, mountpoint); err != nil {
+	ctx := cmd.Context()
+	if err := disk.BuildDisk(ctx, target, stage1, mountpoint); err != nil {
 		log.Fatal(err)
 	}
 }

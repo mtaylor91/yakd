@@ -1,8 +1,12 @@
 package os
 
-import "github.com/mtaylor91/yakd/pkg/util/executor"
+import (
+	"context"
+
+	"github.com/mtaylor91/yakd/pkg/util/executor"
+)
 
 type OSInstaller interface {
-	Bootstrap() error
-	PostBootstrap(chroot executor.Executor) error
+	Bootstrap(ctx context.Context) error
+	PostBootstrap(ctx context.Context, chroot executor.Executor) error
 }

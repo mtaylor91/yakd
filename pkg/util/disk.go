@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"path"
 
 	log "github.com/sirupsen/logrus"
@@ -32,10 +33,10 @@ func NewDisk(devicePath, mountpoint string, cleanup bool) *Disk {
 }
 
 // Populate populates the disk from the specified source
-func (d *Disk) Populate(source string, os os.OS) error {
+func (d *Disk) Populate(ctx context.Context, source string, os os.OS) error {
 	// Create mountpoint
 	log.Infof("Creating mountpoint %s", d.mountpoint)
-	if err := CreateMountpointAt(d.mountpoint); err != nil {
+	if err := CreateMountpointAt(ctx, d.mountpoint); err != nil {
 		return err
 	}
 
@@ -45,7 +46,7 @@ func (d *Disk) Populate(source string, os os.OS) error {
 
 	// Mount root partition
 	log.Infof("Mounting root partition %s on %s", d.rootPartition, d.mountpoint)
-	if err := MountPartitionAt(d.rootPartition, d.mountpoint); err != nil {
+	if err := MountPartitionAt(ctx, d.rootPartition, d.mountpoint); err != nil {
 		return err
 	}
 
@@ -56,13 +57,13 @@ func (d *Disk) Populate(source string, os os.OS) error {
 	// Create ESP mountpoint
 	esp := path.Join(d.mountpoint, "boot", "efi")
 	log.Infof("Creating ESP mountpoint at %s", esp)
-	if err := CreateMountpointAt(esp); err != nil {
+	if err := CreateMountpointAt(ctx, esp); err != nil {
 		return err
 	}
 
 	// Mount ESP
 	log.Infof("Mounting ESP partition %s on %s", d.espPartition, esp)
-	if err := MountPartitionAt(d.espPartition, esp); err != nil {
+	if err := MountPartitionAt(ctx, d.espPartition, esp); err != nil {
 		return err
 	}
 
@@ -72,18 +73,18 @@ func (d *Disk) Populate(source string, os os.OS) error {
 
 	// Copy source to root
 	log.Infof("Copying source %s to %s", source, d.mountpoint)
-	if err := UnpackTarball(source, d.mountpoint); err != nil {
+	if err := UnpackTarball(ctx, source, d.mountpoint); err != nil {
 		return err
 	}
 
 	// Setup chroot executor
 	log.Infof("Setting up chroot")
-	chrootExecutor := chroot.NewExecutor(d.mountpoint)
+	chrootExecutor := chroot.NewExecutor(ctx, d.mountpoint)
 	defer chrootExecutor.Teardown()
 
 	// Configure filesystems
 	log.Infof("Configuring filesystems")
-	err := ConfigureFilesystems(d.mountpoint, d.rootPartition, d.espPartition)
+	err := ConfigureFilesystems(ctx, d.mountpoint, d.rootPartition, d.espPartition)
 	if err != nil {
 		return err
 	}
@@ -91,7 +92,7 @@ func (d *Disk) Populate(source string, os os.OS) error {
 	// Install bootloader
 	log.Infof("Installing bootloader")
 	bootloader := os.BootloaderInstaller(d.DevicePath, d.mountpoint, chrootExecutor)
-	if err := bootloader.Install(); err != nil {
+	if err := bootloader.Install(ctx); err != nil {
 		return err
 	}
 

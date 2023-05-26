@@ -1,11 +1,16 @@
 package util
 
-import log "github.com/sirupsen/logrus"
+import (
+	"context"
+
+	"github.com/mtaylor91/yakd/pkg/util/executor"
+	log "github.com/sirupsen/logrus"
+)
 
 // CreateMountpoint creates the mountpoint for the bootstrap
-func CreateMountpointAt(path string) error {
+func CreateMountpointAt(ctx context.Context, path string) error {
 	// Create mountpoint if it doesn't exist
-	if err := RunCmd("mkdir", "-p", path); err != nil {
+	if err := executor.RunCmd(ctx, "mkdir", "-p", path); err != nil {
 		return err
 	}
 
@@ -15,15 +20,16 @@ func CreateMountpointAt(path string) error {
 // RemoveMountpointAt removes the specified mountpoint
 func RemoveMountpointAt(p string) {
 	// Remove mountpoint
-	if err := RunCmd("rmdir", p); err != nil {
+	ctx := context.Background()
+	if err := executor.RunCmd(ctx, "rmdir", p); err != nil {
 		log.Errorf("Remove %s failed: %s", p, err)
 	}
 }
 
 // MountPartitionAt mounts the specified disk at the specified location
-func MountPartitionAt(partition, location string) error {
+func MountPartitionAt(ctx context.Context, partition, location string) error {
 	// Mount filesystem
-	if err := RunCmd("mount", partition, location); err != nil {
+	if err := executor.RunCmd(ctx, "mount", partition, location); err != nil {
 		return err
 	}
 
@@ -33,7 +39,8 @@ func MountPartitionAt(partition, location string) error {
 // UnmountFilesystems recursively unmounts the specified filesystem(s)
 func UnmountFilesystems(p string) {
 	// Unmount filesystem
-	if err := RunCmd("umount", "-R", p); err != nil {
+	ctx := context.Background()
+	if err := executor.RunCmd(ctx, "umount", "-R", p); err != nil {
 		log.Errorf("Unmount %s failed: %s", p, err)
 	}
 }

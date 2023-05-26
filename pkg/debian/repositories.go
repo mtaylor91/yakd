@@ -1,6 +1,7 @@
 package debian
 
 import (
+	"context"
 	"os"
 	"path"
 	"text/template"
@@ -29,7 +30,7 @@ type AptSource struct {
 }
 
 // configureRepositories configures the apt repositories for the target OS
-func (c *BootstrapConfig) configureRepositories() error {
+func (c *BootstrapConfig) configureRepositories(ctx context.Context) error {
 	keyrings := "usr/share/keyrings"
 
 	// Setup sources.list
@@ -43,7 +44,7 @@ func (c *BootstrapConfig) configureRepositories() error {
 	keyringDownload := util.NewDownload("https://packages.cloud.google.com/apt/doc/apt-key.gpg",
 		path.Join(c.Target, keyring))
 	// Download keyring
-	if err := keyringDownload.DownloadAndDearmorGPG(); err != nil {
+	if err := keyringDownload.DownloadAndDearmorGPG(ctx); err != nil {
 		return err
 	}
 	// Write template to apt source file
@@ -63,7 +64,7 @@ func (c *BootstrapConfig) configureRepositories() error {
 	releaseKeyringUrl := libcontainersUrl(debianVersion) + "Release.key"
 	keyringDownload = util.NewDownload(releaseKeyringUrl, path.Join(c.Target, keyring))
 	// Download keyring
-	if err := keyringDownload.DownloadAndDearmorGPG(); err != nil {
+	if err := keyringDownload.DownloadAndDearmorGPG(ctx); err != nil {
 		return err
 	}
 	// Write template to apt source file
@@ -83,7 +84,7 @@ func (c *BootstrapConfig) configureRepositories() error {
 	releaseKeyringUrl = crioArchiveUrl(crioVersion, debianVersion) + "Release.key"
 	keyringDownload = util.NewDownload(releaseKeyringUrl, path.Join(c.Target, keyring))
 	// Download keyring
-	if err := keyringDownload.DownloadAndDearmorGPG(); err != nil {
+	if err := keyringDownload.DownloadAndDearmorGPG(ctx); err != nil {
 		return err
 	}
 	// Write template to apt source file

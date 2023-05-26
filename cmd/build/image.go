@@ -48,7 +48,8 @@ func BuildImage(cmd *cobra.Command, args []string) {
 		raw = true
 	}
 
-	err := image.BuildImage(force, raw, size, stage1, target, mountpoint)
+	ctx := cmd.Context()
+	err := image.BuildImage(ctx, force, raw, size, stage1, target, mountpoint)
 	if err != nil {
 		log.Fatal(err)
 	}

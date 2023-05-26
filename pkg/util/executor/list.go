@@ -1,8 +1,10 @@
 package executor
 
-func RunCmdList(executor Executor, cmds ...[]string) error {
+import "context"
+
+func RunCmdList(ctx context.Context, executor Executor, cmds ...[]string) error {
 	for _, cmd := range cmds {
-		if err := executor.RunCmd(cmd[0], cmd[1:]...); err != nil {
+		if err := executor.RunCmd(ctx, cmd[0], cmd[1:]...); err != nil {
 			return err
 		}
 	}

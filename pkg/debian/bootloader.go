@@ -1,6 +1,8 @@
 package debian
 
 import (
+	"context"
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mtaylor91/yakd/pkg/util/executor"
@@ -20,23 +22,23 @@ func NewGrubInstaller(device, target string, exec executor.Executor) *GrubInstal
 	}
 }
 
-func (g *GrubInstaller) Install() error {
+func (g *GrubInstaller) Install(ctx context.Context) error {
 	// Install grub-efi
 	log.Infof("Installing grub")
-	if err := installPackages(g.Executor, "grub-efi"); err != nil {
+	if err := installPackages(ctx, g.Executor, "grub-efi"); err != nil {
 		return err
 	}
 
 	// Run grub-install
 	log.Infof("Running grub-install")
-	err := g.Executor.RunCmd("grub-install", "--removable", g.Device)
+	err := g.Executor.RunCmd(ctx, "grub-install", "--removable", g.Device)
 	if err != nil {
 		return err
 	}
 
 	// Run grub-mkconfig
 	log.Infof("Running grub-mkconfig")
-	err = g.Executor.RunCmd("grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+	err = g.Executor.RunCmd(ctx, "grub-mkconfig", "-o", "/boot/grub/grub.cfg")
 	if err != nil {
 		return err
 	}

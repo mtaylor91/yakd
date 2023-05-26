@@ -1,6 +1,7 @@
 package disk
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -11,7 +12,7 @@ import (
 )
 
 // BuildDisk builds a disk from a stage1 tarball
-func BuildDisk(target, stage1, mountpoint string) error {
+func BuildDisk(ctx context.Context, target, stage1, mountpoint string) error {
 	log.Infof("Building disk %s from %s", target, stage1)
 
 	debian := debian.DebianDefault
@@ -28,14 +29,14 @@ func BuildDisk(target, stage1, mountpoint string) error {
 
 	// Partition disk
 	log.Infof("Partitioning %s", target)
-	if err := util.PartitionDisk(target); err != nil {
+	if err := util.PartitionDisk(ctx, target); err != nil {
 		return fmt.Errorf("partitioning %s: %s", target, err)
 	}
 
 	// Populate disk
 	log.Infof("Populating %s", target)
 	d := util.NewDisk(target, mountpoint, true)
-	if err := d.Populate(stage1, debian); err != nil {
+	if err := d.Populate(ctx, stage1, debian); err != nil {
 		return fmt.Errorf("populating %s: %s", target, err)
 	}
 

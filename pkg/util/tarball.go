@@ -1,7 +1,13 @@
 package util
 
+import (
+	"context"
+
+	"github.com/mtaylor91/yakd/pkg/util/executor"
+)
+
 // UnpackTarball unpacks a tarball to the specified target
-func UnpackTarball(source, target string) error {
+func UnpackTarball(ctx context.Context, source, target string) error {
 	// Unpack via tar
-	return RunCmd("tar", "-xf", source, "-C", target)
+	return executor.RunCmd(ctx, "tar", "-xf", source, "-C", target)
 }

@@ -1,6 +1,7 @@
 package chroot
 
 import (
+	"context"
 	"fmt"
 	"sync"
 )
@@ -13,14 +14,14 @@ type ChrootExecutor struct {
 }
 
 // NewExecutor returns a new ChrootExecutor.
-func NewExecutor(root string) *ChrootExecutor {
+func NewExecutor(ctx context.Context, root string) *ChrootExecutor {
 	chroot := &ChrootExecutor{false, root, sync.Mutex{}}
-	chroot.Setup()
+	chroot.Setup(ctx)
 	return chroot
 }
 
 // Setup sets up the chroot.
-func (c *ChrootExecutor) Setup() error {
+func (c *ChrootExecutor) Setup(ctx context.Context) error {
 	c.runMutex.Lock()
 	defer c.runMutex.Unlock()
 
@@ -32,7 +33,7 @@ func (c *ChrootExecutor) Setup() error {
 		return ErrNoRoot
 	}
 
-	if err := MountMetadataFilesystems(c.root); err != nil {
+	if err := MountMetadataFilesystems(ctx, c.root); err != nil {
 		return fmt.Errorf("chroot failed: %s", err)
 	}
 
@@ -49,6 +50,7 @@ func (c *ChrootExecutor) Teardown() {
 		return
 	}
 
-	UnmountMetadataFilesystems(c.root)
+	ctx := context.Background()
+	UnmountMetadataFilesystems(ctx, c.root)
 	c.isSetup = false
 }

@@ -1,8 +1,8 @@
 package debian
 
 import (
-	"github.com/mtaylor91/yakd/pkg/bootstrap"
 	"github.com/mtaylor91/yakd/pkg/os"
+	"github.com/mtaylor91/yakd/pkg/util/bootstrap"
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 

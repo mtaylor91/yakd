@@ -1,6 +1,8 @@
 package debian
 
 import (
+	"context"
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mtaylor91/yakd/pkg/util/executor"
@@ -24,9 +26,9 @@ var kubePackages = []string{
 }
 
 // installBasePackages installs the base packages
-func installBasePackages(exec executor.Executor) error {
+func installBasePackages(ctx context.Context, exec executor.Executor) error {
 	// Install packages
-	if err := installPackages(exec, basePackages...); err != nil {
+	if err := installPackages(ctx, exec, basePackages...); err != nil {
 		return err
 	}
 
@@ -34,14 +36,14 @@ func installBasePackages(exec executor.Executor) error {
 }
 
 // installKubePackages installs the Kubernetes packages
-func installKubePackages(exec executor.Executor) error {
+func installKubePackages(ctx context.Context, exec executor.Executor) error {
 	// Install packages
-	if err := installPackages(exec, kubePackages...); err != nil {
+	if err := installPackages(ctx, exec, kubePackages...); err != nil {
 		return err
 	}
 
 	// Hold packages
-	if err := holdPackages(exec, kubePackages...); err != nil {
+	if err := holdPackages(ctx, exec, kubePackages...); err != nil {
 		return err
 	}
 
@@ -49,11 +51,13 @@ func installKubePackages(exec executor.Executor) error {
 }
 
 // holdPackages is a helper function to hold packages at a specific version
-func holdPackages(exec executor.Executor, packages ...string) error {
+func holdPackages(
+	ctx context.Context, exec executor.Executor, packages ...string,
+) error {
 	// Hold packages
 	log.Infof("Holding packages %v", packages)
 	args := append([]string{"hold"}, packages...)
-	if err := exec.RunCmd("apt-mark", args...); err != nil {
+	if err := exec.RunCmd(ctx, "apt-mark", args...); err != nil {
 		return err
 	}
 
@@ -61,17 +65,19 @@ func holdPackages(exec executor.Executor, packages ...string) error {
 }
 
 // installPackages is a helper function to install packages
-func installPackages(exec executor.Executor, packages ...string) error {
+func installPackages(
+	ctx context.Context, exec executor.Executor, packages ...string,
+) error {
 	// Update apt indices
 	log.Infof("Updating apt indices")
-	if err := exec.RunCmd("apt-get", "update"); err != nil {
+	if err := exec.RunCmd(ctx, "apt-get", "update"); err != nil {
 		return err
 	}
 
 	// Install packages
 	log.Infof("Installing packages %v", packages)
 	args := append([]string{"install", "-y"}, packages...)
-	if err := exec.RunCmd("apt-get", args...); err != nil {
+	if err := exec.RunCmd(ctx, "apt-get", args...); err != nil {
 		return err
 	}
 

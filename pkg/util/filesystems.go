@@ -1,10 +1,13 @@
 package util
 
 import (
+	"context"
 	"html/template"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 const fstabTemplate = `# <filesystem> <mountpoint> <type> <options> <dump> <pass>
@@ -13,13 +16,13 @@ UUID={{.ESPPartitionUUID}} /boot/efi vfat defaults 0 1
 `
 
 // ConfigureFilesystems configures the filesystems on the specified disk
-func ConfigureFilesystems(mountpoint, rootPartition, espPartition string) error {
-	rootPartitionUUID, err := GetFilesystemUUID(rootPartition)
+func ConfigureFilesystems(ctx context.Context, mountpoint, rootPartition, espPartition string) error {
+	rootPartitionUUID, err := GetFilesystemUUID(ctx, rootPartition)
 	if err != nil {
 		return err
 	}
 
-	espPartitionUUID, err := GetFilesystemUUID(espPartition)
+	espPartitionUUID, err := GetFilesystemUUID(ctx, espPartition)
 	if err != nil {
 		return err
 	}
@@ -47,8 +50,9 @@ func ConfigureFilesystems(mountpoint, rootPartition, espPartition string) error 
 }
 
 // GetFilesystemUUID returns the UUID of the specified filesystem
-func GetFilesystemUUID(devicePath string) (string, error) {
-	blkidOutput, err := GetOutput("blkid", "-s", "UUID", "-o", "value", devicePath)
+func GetFilesystemUUID(ctx context.Context, devicePath string) (string, error) {
+	blkidOutput, err := executor.GetOutput(
+		ctx, "blkid", "-s", "UUID", "-o", "value", devicePath)
 	if err != nil {
 		return "", err
 	}

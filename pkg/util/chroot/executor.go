@@ -1,19 +1,22 @@
 package chroot
 
 import (
+	"context"
 	"io"
 
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 // GetOutput implements Executor.GetOutput.
-func (c *ChrootExecutor) GetOutput(cmd string, args ...string) ([]byte, error) {
-	return c.GetOutputWithStdin(cmd, nil, args...)
+func (c *ChrootExecutor) GetOutput(
+	ctx context.Context, cmd string, args ...string,
+) ([]byte, error) {
+	return c.GetOutputWithStdin(ctx, cmd, nil, args...)
 }
 
 // GetOutputWithStdin implements Executor.GetOutputWithStdin.
 func (c *ChrootExecutor) GetOutputWithStdin(
-	cmd string, stdin io.Reader, args ...string,
+	ctx context.Context, cmd string, stdin io.Reader, args ...string,
 ) ([]byte, error) {
 	c.runMutex.Lock()
 	defer c.runMutex.Unlock()
@@ -23,18 +26,18 @@ func (c *ChrootExecutor) GetOutputWithStdin(
 	}
 
 	return executor.Default.GetOutputWithStdin(
-		"chroot", stdin, append([]string{c.root, cmd}, args...)...,
+		ctx, "chroot", stdin, append([]string{c.root, cmd}, args...)...,
 	)
 }
 
 // RunCmd implements Executor.RunCmd.
-func (c *ChrootExecutor) RunCmd(cmd string, args ...string) error {
-	return c.RunCmdWithStdin(cmd, nil, args...)
+func (c *ChrootExecutor) RunCmd(ctx context.Context, cmd string, args ...string) error {
+	return c.RunCmdWithStdin(ctx, cmd, nil, args...)
 }
 
 // RunCmdWithStdin implements Executor.RunCmdWithStdin.
 func (c *ChrootExecutor) RunCmdWithStdin(
-	cmd string, stdin io.Reader, args ...string,
+	ctx context.Context, cmd string, stdin io.Reader, args ...string,
 ) error {
 	c.runMutex.Lock()
 	defer c.runMutex.Unlock()
@@ -44,6 +47,6 @@ func (c *ChrootExecutor) RunCmdWithStdin(
 	}
 
 	return executor.Default.RunCmdWithStdin(
-		"chroot", stdin, append([]string{c.root, cmd}, args...)...,
+		ctx, "chroot", stdin, append([]string{c.root, cmd}, args...)...,
 	)
 }

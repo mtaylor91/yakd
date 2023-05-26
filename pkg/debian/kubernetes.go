@@ -1,6 +1,7 @@
 package debian
 
 import (
+	"context"
 	"path"
 
 	"github.com/mtaylor91/yakd/pkg/util"
@@ -11,7 +12,7 @@ net.bridge.bridge-nf-call-iptables=1
 `
 
 // configureKubernetes configures the target system to run Kubernetes.
-func configureKubernetes(target string) error {
+func configureKubernetes(ctx context.Context, target string) error {
 	modulesLoad := path.Join(target, "etc", "modules-load.d", "10-kubernetes.conf")
 	if err := util.WriteFile(modulesLoad, "br_netfilter\n"); err != nil {
 		return err

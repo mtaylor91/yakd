@@ -1,5 +1,7 @@
 package os
 
+import "context"
+
 type OSBootloaderInstaller interface {
-	Install() error
+	Install(ctx context.Context) error
 }

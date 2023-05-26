@@ -1,20 +1,22 @@
 package debian
 
 import (
+	"context"
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 // Bootstrap uses debootstrap to bootstrap a Debian system
-func (c *BootstrapConfig) Bootstrap() error {
+func (c *BootstrapConfig) Bootstrap(ctx context.Context) error {
 	log.Infof("Bootstrapping Debian %s at %s", c.Suite, c.Target)
 	debootstrap := DefaultDebootstrap
 	if c.Debootstrap != "" {
 		debootstrap = c.Debootstrap
 	}
 
-	err := executor.Default.RunCmd(debootstrap, c.Suite, c.Target, c.Mirror)
+	err := executor.Default.RunCmd(ctx, debootstrap, c.Suite, c.Target, c.Mirror)
 	if err != nil {
 		return err
 	}
@@ -23,39 +25,39 @@ func (c *BootstrapConfig) Bootstrap() error {
 }
 
 // PostBootstrap runs post-bootstrap steps
-func (c *BootstrapConfig) PostBootstrap(chroot executor.Executor) error {
+func (c *BootstrapConfig) PostBootstrap(ctx context.Context, chroot executor.Executor) error {
 	// Configure locales
-	if err := configureLocales(chroot, c.Target); err != nil {
+	if err := configureLocales(ctx, chroot, c.Target); err != nil {
 		return err
 	}
 
 	// Install base packages
-	if err := installBasePackages(chroot); err != nil {
+	if err := installBasePackages(ctx, chroot); err != nil {
 		return err
 	}
 
 	// Configure repositories
-	if err := c.configureRepositories(); err != nil {
+	if err := c.configureRepositories(ctx); err != nil {
 		return err
 	}
 
 	// Install Kubernetes packages
-	if err := installKubePackages(chroot); err != nil {
+	if err := installKubePackages(ctx, chroot); err != nil {
 		return err
 	}
 
 	// Configure system for kubernetes
-	if err := configureKubernetes(c.Target); err != nil {
+	if err := configureKubernetes(ctx, c.Target); err != nil {
 		return err
 	}
 
 	// Configure the admin user
-	if err := configureAdminUser(chroot); err != nil {
+	if err := configureAdminUser(ctx, chroot); err != nil {
 		return err
 	}
 
 	// Install kernel
-	if err := c.installKernel(chroot); err != nil {
+	if err := c.installKernel(ctx, chroot); err != nil {
 		return err
 	}
 

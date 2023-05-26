@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"os"
@@ -20,11 +21,18 @@ func NewDownload(source, destination string) *Download {
 }
 
 // Download downloads a file from a URL to a destination
-func (d *Download) Download() error {
+func (d *Download) Download(ctx context.Context) error {
 	log.Infof("Downloading %s to %s", d.Source, d.Destination)
 
-	// Initiate http connection
-	resp, err := http.Get(d.Source)
+	// Construct the request
+	req, err := http.NewRequestWithContext(ctx, "GET", d.Source, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("User-Agent", "yakd")
+
+	// Send the request
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -45,11 +53,18 @@ func (d *Download) Download() error {
 
 // DownloadAndDearmorGPG downloads a file from a URL to a destination
 // and performs a GPG dearmor
-func (d *Download) DownloadAndDearmorGPG() error {
+func (d *Download) DownloadAndDearmorGPG(ctx context.Context) error {
 	log.Infof("Downloading %s to %s (and removing GPG armor)", d.Source, d.Destination)
 
-	// Initiate http connection
-	resp, err := http.Get(d.Source)
+	// Construct the request
+	req, err := http.NewRequestWithContext(ctx, "GET", d.Source, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("User-Agent", "yakd")
+
+	// Send the request
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}

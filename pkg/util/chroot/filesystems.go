@@ -1,6 +1,7 @@
 package chroot
 
 import (
+	"context"
 	"path"
 
 	log "github.com/sirupsen/logrus"
@@ -9,7 +10,7 @@ import (
 )
 
 // MountMetadataFilesystems creates the mountpoints for the bootstrap
-func MountMetadataFilesystems(root string) error {
+func MountMetadataFilesystems(ctx context.Context, root string) error {
 	commands := [][]string{
 		[]string{"mount", "-t", "proc", "/proc", path.Join(root, "proc")},
 		[]string{"mount", "--rbind", "/dev", path.Join(root, "dev")},
@@ -20,11 +21,11 @@ func MountMetadataFilesystems(root string) error {
 		[]string{"mount", "--make-slave", path.Join(root, "run")},
 	}
 
-	return executor.RunCmdList(executor.Default, commands...)
+	return executor.RunCmdList(ctx, executor.Default, commands...)
 }
 
 // UnmountMetadataFilesystems destroys the mountpoints for the bootstrap
-func UnmountMetadataFilesystems(root string) {
+func UnmountMetadataFilesystems(ctx context.Context, root string) {
 	commands := [][]string{
 		[]string{"umount", "-R", path.Join(root, "run")},
 		[]string{"umount", "-R", path.Join(root, "sys")},
@@ -32,7 +33,7 @@ func UnmountMetadataFilesystems(root string) {
 		[]string{"umount", "-R", path.Join(root, "proc")},
 	}
 
-	err := executor.RunCmdList(executor.Default, commands...)
+	err := executor.RunCmdList(ctx, executor.Default, commands...)
 	if err != nil {
 		log.Errorf("Error running umount: %s", err)
 	}

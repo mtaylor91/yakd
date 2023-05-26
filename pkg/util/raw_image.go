@@ -1,12 +1,15 @@
 package util
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 // RawImage represents a disk image
@@ -28,9 +31,9 @@ func NewRawImage(path string, sizeMB int, cleanup, overwrite bool) *RawImage {
 }
 
 // Alloc allocates a new image file
-func (i *RawImage) Alloc() error {
+func (i *RawImage) Alloc(ctx context.Context) error {
 	// Create image using dd
-	if err := RunCmd("dd", "if=/dev/zero", "of="+i.ImagePath, "bs=1M",
+	if err := executor.RunCmd(ctx, "dd", "if=/dev/zero", "of="+i.ImagePath, "bs=1M",
 		"count=1", "seek="+strconv.Itoa(i.sizeMB-1)); err != nil {
 		return err
 	}
@@ -39,16 +42,16 @@ func (i *RawImage) Alloc() error {
 }
 
 // Attach attaches the image to a loop device
-func (i *RawImage) Attach() (*LoopDevice, error) {
+func (i *RawImage) Attach(ctx context.Context) (*LoopDevice, error) {
 	// Attach image to loop device
 	log.Infof("Attaching image %s to loop device", i.ImagePath)
-	if err := RunCmd("losetup", "-P", "-f", i.ImagePath); err != nil {
+	if err := executor.RunCmd(ctx, "losetup", "-P", "-f", i.ImagePath); err != nil {
 		return nil, err
 	}
 
 	// Get loop device info
 	log.Infof("Getting loop device info for %s", i.ImagePath)
-	if out, err := GetOutput("losetup", "-j", i.ImagePath); err != nil {
+	if out, err := executor.GetOutput(ctx, "losetup", "-j", i.ImagePath); err != nil {
 		return nil, err
 	} else {
 		// Get loop device path
@@ -60,11 +63,11 @@ func (i *RawImage) Attach() (*LoopDevice, error) {
 }
 
 // Convert converts the image
-func (i *RawImage) Convert(output string) error {
+func (i *RawImage) Convert(ctx context.Context, output string) error {
 	// Convert image to qcow2
 	log.Infof("Converting image %s to qcow2", i.ImagePath)
 	format := filepath.Ext(output)[1:]
-	if err := RunCmd("qemu-img", "convert", "-f", "raw",
+	if err := executor.RunCmd(ctx, "qemu-img", "convert", "-f", "raw",
 		"-O", format, i.ImagePath, output); err != nil {
 		return err
 	}

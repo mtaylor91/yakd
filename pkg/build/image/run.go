@@ -1,6 +1,7 @@
 package image
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -12,6 +13,7 @@ import (
 
 // BuildImage builds a yakd image from a stage1 tarball
 func BuildImage(
+	ctx context.Context,
 	force, raw bool, sizeMB int,
 	stage1, target, mountpoint string,
 ) error {
@@ -55,7 +57,7 @@ func BuildImage(
 
 	// Allocate raw image file
 	log.Infof("Creating raw image at %s", r.ImagePath)
-	if err := r.Alloc(); err != nil {
+	if err := r.Alloc(ctx); err != nil {
 		return err
 	}
 
@@ -65,13 +67,13 @@ func BuildImage(
 
 	// Create partition table
 	log.Infof("Creating partition table on %s", r.ImagePath)
-	if err := util.PartitionDisk(r.ImagePath); err != nil {
+	if err := util.PartitionDisk(ctx, r.ImagePath); err != nil {
 		return err
 	}
 
 	// Attach image
 	log.Infof("Attaching image %s", r.ImagePath)
-	loop, err := r.Attach()
+	loop, err := r.Attach(ctx)
 	if err != nil {
 		return err
 	}
@@ -80,7 +82,7 @@ func BuildImage(
 
 	// Format image
 	log.Infof("Formatting image %s on %s", r.ImagePath, loop.DevicePath)
-	if err := loop.Format(); err != nil {
+	if err := loop.Format(ctx); err != nil {
 		return err
 	}
 
@@ -89,14 +91,14 @@ func BuildImage(
 
 	// Populate disk image
 	log.Infof("Populating disk image mounted at %s", mountpoint)
-	if err := d.Populate(stage1, debian); err != nil {
+	if err := d.Populate(ctx, stage1, debian); err != nil {
 		return err
 	}
 
 	if !raw {
 		// Convert image to qcow2
 		log.Infof("Converting image %s to %s", r.ImagePath, target)
-		if err := r.Convert(target); err != nil {
+		if err := r.Convert(ctx, target); err != nil {
 			return err
 		}
 	}
