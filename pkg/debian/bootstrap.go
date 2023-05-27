@@ -25,7 +25,9 @@ func (c *BootstrapConfig) Bootstrap(ctx context.Context) error {
 }
 
 // PostBootstrap runs post-bootstrap steps
-func (c *BootstrapConfig) PostBootstrap(ctx context.Context, chroot executor.Executor) error {
+func (c *BootstrapConfig) PostBootstrap(
+	ctx context.Context, chroot executor.Executor) error {
+
 	// Configure locales
 	if err := configureLocales(ctx, chroot, c.Target); err != nil {
 		return err

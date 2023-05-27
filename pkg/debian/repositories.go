@@ -6,7 +6,7 @@ import (
 	"path"
 	"text/template"
 
-	"github.com/mtaylor91/yakd/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util/http"
 )
 
 const AptSourcesTemplate = `
@@ -41,7 +41,7 @@ func (c *BootstrapConfig) configureRepositories(ctx context.Context) error {
 
 	// Setup kubernetes repository
 	keyring := path.Join(keyrings, "kubernetes-archive-keyring.gpg")
-	keyringDownload := util.NewDownload("https://packages.cloud.google.com/apt/doc/apt-key.gpg",
+	keyringDownload := http.NewDownload("https://packages.cloud.google.com/apt/doc/apt-key.gpg",
 		path.Join(c.Target, keyring))
 	// Download keyring
 	if err := keyringDownload.DownloadAndDearmorGPG(ctx); err != nil {
@@ -62,7 +62,7 @@ func (c *BootstrapConfig) configureRepositories(ctx context.Context) error {
 	// Setup libcontainers repository
 	keyring = path.Join(keyrings, "libcontainers-archive-keyring.gpg")
 	releaseKeyringUrl := libcontainersUrl(debianVersion) + "Release.key"
-	keyringDownload = util.NewDownload(releaseKeyringUrl, path.Join(c.Target, keyring))
+	keyringDownload = http.NewDownload(releaseKeyringUrl, path.Join(c.Target, keyring))
 	// Download keyring
 	if err := keyringDownload.DownloadAndDearmorGPG(ctx); err != nil {
 		return err
@@ -82,7 +82,7 @@ func (c *BootstrapConfig) configureRepositories(ctx context.Context) error {
 	// Setup libcontainers crio repository
 	keyring = path.Join(keyrings, "libcontainers-crio-archive-keyring.gpg")
 	releaseKeyringUrl = crioArchiveUrl(crioVersion, debianVersion) + "Release.key"
-	keyringDownload = util.NewDownload(releaseKeyringUrl, path.Join(c.Target, keyring))
+	keyringDownload = http.NewDownload(releaseKeyringUrl, path.Join(c.Target, keyring))
 	// Download keyring
 	if err := keyringDownload.DownloadAndDearmorGPG(ctx); err != nil {
 		return err

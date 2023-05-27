@@ -9,5 +9,6 @@ import (
 // UnpackTarball unpacks a tarball to the specified target
 func UnpackTarball(ctx context.Context, source, target string) error {
 	// Unpack via tar
-	return executor.RunCmd(ctx, "tar", "-xf", source, "-C", target)
+	return executor.RunCmd(ctx, "tar", "-xpf", source, "-C", target,
+		"--xattrs-include='*.*'", "--numeric-owner")
 }

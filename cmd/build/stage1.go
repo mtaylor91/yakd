@@ -11,12 +11,14 @@ import (
 
 func init() {
 	f := Stage1.Flags()
+	f.String("os", "debian", "Operating system")
 	f.BoolP("force", "f", false, "Overwrite existing stage 1")
-	f.String("target", "stage1.tar.gz", "Target path for stage 1")
-	f.String("suite", debian.DefaultSuite, "Debian suite")
-	f.String("mirror", debian.DefaultMirror, "Debian mirror")
+	f.String("debian-mirror", debian.DefaultMirror, "Debian mirror")
+	f.String("debian-suite", debian.DefaultSuite, "Debian suite")
 	f.String("mountpoint", "/mnt/target", "Mountpoint for stage 1 build")
-	f.Int("tmpfs-size", 4096, "tmpfs size in MB")
+	f.String("target-template", "stage1-{{.OS}}-{{.Arch}}.tar.gz",
+		"Target path template for stage 1 archive")
+	f.Int("tmpfs-size", 8192, "tmpfs size in MB")
 }
 
 var Stage1 = &cobra.Command{
@@ -26,29 +28,26 @@ var Stage1 = &cobra.Command{
 }
 
 func BuildStage1(cmd *cobra.Command, args []string) {
-	log.Info("Building stage 1")
+	ctx := cmd.Context()
 
 	f := cmd.Flags()
 	v := viper.New()
 
+	v.BindPFlag("os", f.Lookup("os"))
 	v.BindPFlag("force", f.Lookup("force"))
-	v.BindPFlag("target", f.Lookup("target"))
-	v.BindPFlag("suite", f.Lookup("suite"))
-	v.BindPFlag("mirror", f.Lookup("mirror"))
+	v.BindPFlag("debian-mirror", f.Lookup("debian-mirror"))
+	v.BindPFlag("debian-suite", f.Lookup("debian-suite"))
 	v.BindPFlag("mountpoint", f.Lookup("mountpoint"))
+	v.BindPFlag("target-template", f.Lookup("target-template"))
 	v.BindPFlag("tmpfs-size", f.Lookup("tmpfs-size"))
 
-	force := v.GetBool("force")
-	target := v.GetString("target")
-	suite := v.GetString("suite")
-	mirror := v.GetString("mirror")
-	mountpoint := v.GetString("mountpoint")
-	tmpfsSize := v.GetInt("tmpfs-size")
-
-	ctx := cmd.Context()
-	err := stage1.BuildStage1(
-		ctx, force, target, suite, mirror, mountpoint, tmpfsSize)
+	var stage1 stage1.Stage1
+	err := v.Unmarshal(&stage1)
 	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := stage1.Build(ctx); err != nil {
 		log.Fatal(err)
 	}
 }

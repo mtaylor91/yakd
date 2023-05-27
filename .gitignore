@@ -1,5 +1,5 @@
 /bin
 /pi/*.img.xz
-/stage1.tar.*
+/*.tar.*
 /*.qcow2
 /*.raw

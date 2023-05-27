@@ -1,9 +1,8 @@
-package util
+package http
 
 import (
 	"context"
 	"io"
-	"net/http"
 	"os"
 	"os/exec"
 
@@ -24,15 +23,8 @@ func NewDownload(source, destination string) *Download {
 func (d *Download) Download(ctx context.Context) error {
 	log.Infof("Downloading %s to %s", d.Source, d.Destination)
 
-	// Construct the request
-	req, err := http.NewRequestWithContext(ctx, "GET", d.Source, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("User-Agent", "yakd")
-
 	// Send the request
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := Get(ctx, d.Source)
 	if err != nil {
 		return err
 	}
@@ -56,18 +48,7 @@ func (d *Download) Download(ctx context.Context) error {
 func (d *Download) DownloadAndDearmorGPG(ctx context.Context) error {
 	log.Infof("Downloading %s to %s (and removing GPG armor)", d.Source, d.Destination)
 
-	// Construct the request
-	req, err := http.NewRequestWithContext(ctx, "GET", d.Source, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("User-Agent", "yakd")
-
-	// Send the request
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
+	resp, err := Get(ctx, d.Source)
 
 	// Locate gpg command
 	gpg, err := exec.LookPath("gpg")

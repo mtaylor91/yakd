@@ -37,6 +37,10 @@ func (c *ChrootExecutor) Setup(ctx context.Context) error {
 		return fmt.Errorf("chroot failed: %s", err)
 	}
 
+	if err := CopyResolvConf(ctx, c.root); err != nil {
+		return fmt.Errorf("chroot failed: %s", err)
+	}
+
 	c.isSetup = true
 	return nil
 }
