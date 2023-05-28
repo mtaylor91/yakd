@@ -1,8 +1,6 @@
 package build
 
 import (
-	"path/filepath"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -13,10 +11,12 @@ import (
 func init() {
 	f := Image.Flags()
 	f.BoolP("force", "f", false, "Overwrite existing image")
-	f.Int("size", 4096, "Image size in MB")
-	f.String("stage1", "stage1.tar.gz", "Path to stage 1 tarball")
-	f.String("target", "yakd.qcow2", "Target path for image")
 	f.String("mountpoint", "/mnt/target", "Mountpoint for image build")
+	f.String("os", "debian", "Operating system")
+	f.String("stage1-template", "stage1.tar.gz", "Path template for stage 1 tarball")
+	f.Int("size-mb", 4096, "Image size in MB")
+	f.String("target-template", "build/{{.OS}}/yakd.qcow2",
+		"Target path template for image")
 }
 
 var Image = &cobra.Command{
@@ -32,24 +32,19 @@ func BuildImage(cmd *cobra.Command, args []string) {
 	v := viper.New()
 
 	v.BindPFlag("force", f.Lookup("force"))
-	v.BindPFlag("size", f.Lookup("size"))
-	v.BindPFlag("stage1", f.Lookup("stage1"))
-	v.BindPFlag("target", f.Lookup("target"))
 	v.BindPFlag("mountpoint", f.Lookup("mountpoint"))
+	v.BindPFlag("os", f.Lookup("os"))
+	v.BindPFlag("stage1-template", f.Lookup("stage1-template"))
+	v.BindPFlag("size-mb", f.Lookup("size-mb"))
+	v.BindPFlag("target-template", f.Lookup("target-template"))
 
-	force := v.GetBool("force")
-	size := v.GetInt("size")
-	stage1 := v.GetString("stage1")
-	target := v.GetString("target")
-	mountpoint := v.GetString("mountpoint")
-
-	raw := false
-	if filepath.Ext(target) == ".raw" {
-		raw = true
+	var config image.Config
+	if err := v.Unmarshal(&config); err != nil {
+		log.Fatal(err)
 	}
 
 	ctx := cmd.Context()
-	err := image.BuildImage(ctx, force, raw, size, stage1, target, mountpoint)
+	err := config.BuildImage(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}

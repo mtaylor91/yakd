@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -13,23 +15,44 @@ import (
 )
 
 // BuildImage builds a yakd image from a stage1 tarball
-func BuildImage(
+func (c *Config) BuildImage(
 	ctx context.Context,
-	force, raw bool, sizeMB int,
-	stage1, target, mountpoint string,
 ) error {
-	debian := debian.DebianDefault
+	// Construct stage1 path
+	stage1, err := util.TemplateString(c.Stage1Template, map[string]string{
+		"OS":   c.OS,
+		"Arch": runtime.GOARCH,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Construct target path
+	target, err := util.TemplateString(c.TargetTemplate, map[string]string{
+		"OS":   c.OS,
+		"Arch": runtime.GOARCH,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Infer if we're building a raw image
+	raw := false
+	if filepath.Ext(target) == ".raw" {
+		raw = true
+	}
+
 	rawName := target
 
 	if !raw {
 		rawName = target + ".raw"
 	}
 
-	r := util.NewRawImage(rawName, sizeMB, true, true)
+	r := util.NewRawImage(rawName, c.SizeMB, true, true)
 
 	// Check if target exists
 	if _, err := os.Stat(target); err == nil {
-		if force {
+		if c.Force {
 			// Remove target
 			if err := os.Remove(target); err != nil {
 				return fmt.Errorf("failed to remove target: %s", err)
@@ -41,7 +64,7 @@ func BuildImage(
 
 	// Check if raw image exists
 	if _, err := os.Stat(r.ImagePath); err == nil {
-		if force {
+		if c.Force {
 			// Remove raw image
 			if err := os.Remove(r.ImagePath); err != nil {
 				return fmt.Errorf("failed to remove raw image: %s", err)
@@ -86,7 +109,7 @@ func BuildImage(
 	defer loop.Detach()
 
 	// Initialize image loop device disk
-	d, err := util.NewDisk(loop.DevicePath, mountpoint, true)
+	d, err := util.NewDisk(loop.DevicePath, c.Mountpoint, true)
 	if err != nil {
 		return err
 	}
@@ -98,8 +121,15 @@ func BuildImage(
 	}
 
 	// Populate disk image
-	log.Infof("Populating disk image mounted at %s", mountpoint)
-	if err := d.Populate(ctx, stage1, debian); err != nil {
+	log.Infof("Populating disk image mounted at %s", c.Mountpoint)
+	switch c.OS {
+	case "debian":
+		debian := debian.DebianDefault
+		err = d.Populate(ctx, stage1, debian)
+	default:
+		err = fmt.Errorf("unsupported OS: %s", c.OS)
+	}
+	if err != nil {
 		return err
 	}
 
