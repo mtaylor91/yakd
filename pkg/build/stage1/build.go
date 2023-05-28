@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	log "github.com/sirupsen/logrus"
@@ -38,6 +39,11 @@ func (stage1 *Stage1) Build(ctx context.Context) error {
 		}
 	}
 
+	// Ensure target directory exists
+	if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+		return err
+	}
+
 	log.Infof("Building %s", target)
 
 	tmpfs := &bootstrap.TmpFS{
@@ -61,6 +67,8 @@ func (stage1 *Stage1) Build(ctx context.Context) error {
 		err = tmpfs.Bootstrap(ctx, debian)
 	case "gentoo":
 		gentoo := gentoo.DefaultGentoo
+		gentoo.BinPkgsCache = stage1.GentooBinPkgsCache
+		gentoo.Stage3 = stage1.GentooStage3
 		err = tmpfs.Bootstrap(ctx, gentoo)
 	default:
 		return fmt.Errorf("unknown operating system: %s", stage1.OS)

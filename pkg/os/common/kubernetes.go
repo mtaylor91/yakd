@@ -1,4 +1,4 @@
-package debian
+package common
 
 import (
 	"context"
@@ -14,8 +14,8 @@ const sysctlConf = `net.ipv4.ip_forward=1
 net.bridge.bridge-nf-call-iptables=1
 `
 
-// configureKubernetes configures the target system to run Kubernetes.
-func configureKubernetes(
+// ConfigureKubernetes configures the target system to run Kubernetes.
+func ConfigureKubernetes(
 	ctx context.Context, exec executor.Executor, target string,
 ) error {
 	log.Infof("Configuring system to run Kubernetes")

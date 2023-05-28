@@ -2,6 +2,8 @@ package gentoo
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -20,6 +22,11 @@ func DownloadStage3(ctx context.Context, location string) error {
 	// Identify latest stage3 tarball
 	stage3url, err := identifyStage3(ctx)
 	if err != nil {
+		return err
+	}
+
+	// Ensure download location exists
+	if err := os.MkdirAll(filepath.Dir(location), 0755); err != nil {
 		return err
 	}
 

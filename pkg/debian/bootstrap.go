@@ -5,6 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/mtaylor91/yakd/pkg/os/common"
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
@@ -49,12 +50,12 @@ func (c *BootstrapConfig) PostBootstrap(
 	}
 
 	// Configure system for kubernetes
-	if err := configureKubernetes(ctx, chroot, c.Target); err != nil {
+	if err := common.ConfigureKubernetes(ctx, chroot, c.Target); err != nil {
 		return err
 	}
 
 	// Configure networking
-	if err := configureNetworking(ctx, chroot, c.Target); err != nil {
+	if err := common.ConfigureNetwork(ctx, chroot, c.Target); err != nil {
 		return err
 	}
 

@@ -15,10 +15,14 @@ func init() {
 	f.BoolP("force", "f", false, "Overwrite existing stage 1")
 	f.String("debian-mirror", debian.DefaultMirror, "Debian mirror")
 	f.String("debian-suite", debian.DefaultSuite, "Debian suite")
+	f.String("gentoo-binpkgs-cache", "build/gentoo/binpkgs",
+		"Gentoo binpkgs cache directory")
+	f.String("gentoo-stage3", "build/gentoo/upstream-stage3.tar.xz",
+		"Gentoo stage3 archive path")
 	f.String("mountpoint", "/mnt/target", "Mountpoint for stage 1 build")
-	f.String("target-template", "stage1-{{.OS}}-{{.Arch}}.tar.gz",
+	f.String("target-template", "build/{{.OS}}/yakd-stage1-{{.Arch}}.tar.gz",
 		"Target path template for stage 1 archive")
-	f.Int("tmpfs-size", 8192, "tmpfs size in MB")
+	f.Int("tmpfs-size", 10240, "tmpfs size in MB")
 }
 
 var Stage1 = &cobra.Command{
@@ -37,6 +41,8 @@ func BuildStage1(cmd *cobra.Command, args []string) {
 	v.BindPFlag("force", f.Lookup("force"))
 	v.BindPFlag("debian-mirror", f.Lookup("debian-mirror"))
 	v.BindPFlag("debian-suite", f.Lookup("debian-suite"))
+	v.BindPFlag("gentoo-binpkgs-cache", f.Lookup("gentoo-binpkgs-cache"))
+	v.BindPFlag("gentoo-stage3", f.Lookup("gentoo-stage3"))
 	v.BindPFlag("mountpoint", f.Lookup("mountpoint"))
 	v.BindPFlag("target-template", f.Lookup("target-template"))
 	v.BindPFlag("tmpfs-size", f.Lookup("tmpfs-size"))

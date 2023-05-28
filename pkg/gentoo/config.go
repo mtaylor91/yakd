@@ -6,19 +6,14 @@ import (
 )
 
 type Gentoo struct {
-	Stage3 string
-}
-
-type GentooBootloaderInstaller struct {
-	device string
-	target string
-	exec   executor.Executor
+	BinPkgsCache string
+	Stage3       string
 }
 
 func (g *Gentoo) BootstrapInstaller(
 	target string,
 ) os.OSBootstrapInstaller {
-	return &GentooBootstrapInstaller{g.Stage3, target}
+	return &GentooBootstrapInstaller{g.BinPkgsCache, g.Stage3, target}
 }
 
 func (g *Gentoo) BootloaderInstaller(

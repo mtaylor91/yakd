@@ -27,10 +27,12 @@ func MountMetadataFilesystems(ctx context.Context, root string) error {
 // UnmountMetadataFilesystems destroys the mountpoints for the bootstrap
 func UnmountMetadataFilesystems(ctx context.Context, root string) {
 	commands := [][]string{
-		[]string{"umount", "-R", path.Join(root, "run")},
-		[]string{"umount", "-R", path.Join(root, "sys")},
-		[]string{"umount", "-R", path.Join(root, "dev")},
 		[]string{"umount", "-R", path.Join(root, "proc")},
+		[]string{"umount", "-R", path.Join(root, "dev", "pts")},
+		[]string{"umount", "-R", path.Join(root, "dev", "shm")},
+		[]string{"umount", "-R", path.Join(root, "dev")},
+		[]string{"umount", "-R", path.Join(root, "sys")},
+		[]string{"umount", "-R", path.Join(root, "run")},
 	}
 
 	err := executor.RunCmdList(ctx, executor.Default, commands...)

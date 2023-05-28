@@ -1,4 +1,4 @@
-package debian
+package common
 
 import (
 	"context"
@@ -23,8 +23,8 @@ const hostsConfig = `127.0.0.1 localhost
 ::1 localhost ip6-localhost ip6-loopback
 `
 
-// configureNetworking configures networking for the target system.
-func configureNetworking(
+// ConfigureNetwork configures the network for the target system.
+func ConfigureNetwork(
 	ctx context.Context, exec executor.Executor, target string,
 ) error {
 	log.Infof("Configuring networking")

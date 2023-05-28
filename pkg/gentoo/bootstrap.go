@@ -10,6 +10,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/mtaylor91/yakd/pkg/os/common"
 	"github.com/mtaylor91/yakd/pkg/util"
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
@@ -49,18 +50,16 @@ CFLAGS="${COMMON_FLAGS}"
 CXXFLAGS="${COMMON_FLAGS}"
 FCFLAGS="${COMMON_FLAGS}"
 FFLAGS="${COMMON_FLAGS}"
-
-# NOTE: This stage was built with the bindist Use flag enabled
-
-# This sets the language of build output to English.
-# Please keep this setting intact when reporting bugs.
 LC_MESSAGES=C.utf8
 MAKEOPTS="-j{{.NumCores}}"
+BINPKG_FORMAT="gpkg"
+FEATURES="buildpkg"
 `
 
 type GentooBootstrapInstaller struct {
-	stage3 string
-	target string
+	binPkgsCache string
+	stage3       string
+	target       string
 }
 
 func (g *GentooBootstrapInstaller) Bootstrap(ctx context.Context) error {
@@ -89,6 +88,30 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 	ctx context.Context, chroot executor.Executor,
 ) error {
 	defer debugChroot(ctx, chroot)
+
+	// Ensure binPkgsCache exists
+	err := os.MkdirAll(g.binPkgsCache, 0755)
+	if err != nil {
+		return err
+	}
+
+	// Populate /var/cache/binpkgs
+	if err = executor.Default.RunCmd(
+		ctx, "mount", "--bind",
+		g.binPkgsCache,
+		path.Join(g.target, "var/cache/binpkgs"),
+	); err != nil {
+		return err
+	}
+
+	// Unmount /var/cache/binpkgs on exit
+	defer func() {
+		if err := executor.Default.RunCmd(
+			ctx, "umount", path.Join(g.target, "var/cache/binpkgs"),
+		); err != nil {
+			log.Warnf("Failed to unmount /var/cache/binpkgs: %s", err)
+		}
+	}()
 
 	// Render make.conf template
 	makeConf, err := util.TemplateString(makeConfTemplate, map[string]interface{}{
@@ -125,8 +148,8 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 
 	// Emerge @world updates
 	log.Infof("Emerging @world updates")
-	log.Warning("Disabled for testing")
-	err = chroot.RunCmd(ctx, "emerge", "--update", "--deep", "--newuse", "@world")
+	err = chroot.RunCmd(
+		ctx, "emerge", "--usepkg", "--update", "--deep", "--newuse", "@world")
 	if err != nil {
 		return err
 	}
@@ -161,7 +184,8 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 	// Install gentoo-kernel
 	log.Infof("Installing gentoo-kernel")
 	log.Warning("Disabled for testing")
-	if err := chroot.RunCmd(ctx, "emerge", "sys-kernel/gentoo-kernel"); err != nil {
+	if err := chroot.RunCmd(
+		ctx, "emerge", "--usepkg", "sys-kernel/gentoo-kernel"); err != nil {
 		return err
 	}
 
@@ -175,11 +199,31 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 	// Install cri-o
 	log.Infof("Installing kubernetes packages")
 	if err := installPackages(ctx, chroot,
+		"app-admin/sudo",
 		"app-containers/cri-o",
 		"sys-cluster/kubeadm",
 		"sys-cluster/kubectl",
 		"sys-cluster/kubelet",
 	); err != nil {
+		return err
+	}
+
+	log.Infof("Creating admin user")
+	err = chroot.RunCmd(ctx, "useradd", "-m", "-G", "wheel", "admin")
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Removing admin password")
+	if err := chroot.RunCmd(ctx, "passwd", "-d", "admin"); err != nil {
+		return err
+	}
+
+	if err := common.ConfigureKubernetes(ctx, chroot, g.target); err != nil {
+		return err
+	}
+
+	if err := common.ConfigureNetwork(ctx, chroot, g.target); err != nil {
 		return err
 	}
 
@@ -201,7 +245,14 @@ func acceptKeywords(
 func installPackages(
 	ctx context.Context, chroot executor.Executor, pkgs ...string,
 ) error {
-	return chroot.RunCmd(ctx, "emerge", strings.Join(pkgs, " "))
+	for _, pkg := range pkgs {
+		err := chroot.RunCmd(ctx, "emerge", "--usepkg", pkg)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func debugChroot(ctx context.Context, chroot executor.Executor) error {
