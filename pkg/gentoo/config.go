@@ -19,5 +19,5 @@ func (g *Gentoo) BootstrapInstaller(
 func (g *Gentoo) BootloaderInstaller(
 	device, target string, exec executor.Executor,
 ) os.OSBootloaderInstaller {
-	return &GentooBootloaderInstaller{device, target, exec}
+	return &GentooBootloaderInstaller{g.BinPkgsCache, device, target, exec}
 }

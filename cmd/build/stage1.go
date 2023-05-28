@@ -7,6 +7,7 @@ import (
 
 	"github.com/mtaylor91/yakd/pkg/build/stage1"
 	"github.com/mtaylor91/yakd/pkg/debian"
+	"github.com/mtaylor91/yakd/pkg/gentoo"
 )
 
 func init() {
@@ -15,8 +16,8 @@ func init() {
 	f.BoolP("force", "f", false, "Overwrite existing stage 1")
 	f.String("debian-mirror", debian.DefaultMirror, "Debian mirror")
 	f.String("debian-suite", debian.DefaultSuite, "Debian suite")
-	f.String("gentoo-binpkgs-cache", "build/gentoo/binpkgs",
-		"Gentoo binpkgs cache directory")
+	f.String("gentoo-binpkgs-cache", gentoo.DefaultGentoo.BinPkgsCache,
+		"Path to Gentoo binpkgs cache")
 	f.String("gentoo-stage3", "build/gentoo/upstream-stage3.tar.xz",
 		"Gentoo stage3 archive path")
 	f.String("mountpoint", "/mnt/target", "Mountpoint for stage 1 build")

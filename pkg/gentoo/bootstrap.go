@@ -54,6 +54,9 @@ BINPKG_FORMAT="gpkg"
 FEATURES="buildpkg"
 `
 
+const sudoersWheel = `%wheel ALL=(ALL:ALL) ALL
+`
+
 type GentooBootstrapInstaller struct {
 	binPkgsCache string
 	stage3       string
@@ -85,15 +88,13 @@ func (g *GentooBootstrapInstaller) Bootstrap(ctx context.Context) error {
 func (g *GentooBootstrapInstaller) PostBootstrap(
 	ctx context.Context, chroot executor.Executor,
 ) error {
-	defer debugChroot(ctx, chroot)
-
 	// Ensure binPkgsCache exists
 	err := os.MkdirAll(g.binPkgsCache, 0755)
 	if err != nil {
 		return err
 	}
 
-	// Populate /var/cache/binpkgs
+	// Bind binPkgsCache to /var/cache/binpkgs
 	if err = executor.Default.RunCmd(
 		ctx, "mount", "--bind",
 		g.binPkgsCache,
@@ -199,6 +200,8 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 	if err := installPackages(ctx, chroot,
 		"app-admin/sudo",
 		"app-containers/cri-o",
+		"net-firewall/ebtables",
+		"sys-apps/ethtool",
 		"sys-cluster/kubeadm",
 		"sys-cluster/kubectl",
 		"sys-cluster/kubelet",
@@ -214,6 +217,26 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 
 	log.Infof("Removing admin password")
 	if err := chroot.RunCmd(ctx, "passwd", "-d", "admin"); err != nil {
+		return err
+	}
+
+	log.Infof("Configuring sudo")
+	// Ensure sudoers.d exists
+	err = os.MkdirAll(path.Join(g.target, "etc/sudoers.d"), 0755)
+	if err != nil {
+		return err
+	}
+	// Write sudoers.d/wheel
+	err = os.WriteFile(
+		path.Join(g.target, "etc/sudoers.d/wheel"), []byte(sudoersWheel), 0440)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Setting machine id")
+	// Set machine id
+	err = chroot.RunCmd(ctx, "systemd-machine-id-setup")
+	if err != nil {
 		return err
 	}
 

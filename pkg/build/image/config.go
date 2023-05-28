@@ -3,6 +3,8 @@ package image
 type Config struct {
 	// Force overwrite of existing image
 	Force bool `mapstructure:"force"`
+	// Path to the Gentoo binpkgs cache
+	GentooBinPkgsCache string `mapstructure:"gentoo-binpkgs-cache"`
 	// Path to mount the target filesystem
 	Mountpoint string `mapstructure:"mountpoint"`
 	// Operating system

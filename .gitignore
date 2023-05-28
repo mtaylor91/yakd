@@ -1,6 +1,3 @@
 /bin
 /build
 /pi/*.img.xz
-/*.tar.*
-/*.qcow2
-/*.raw

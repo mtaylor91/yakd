@@ -35,5 +35,10 @@ func ConfigureKubernetes(
 		return err
 	}
 
+	err = exec.RunCmd(ctx, "systemctl", "enable", "kubelet")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

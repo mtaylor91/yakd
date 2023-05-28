@@ -6,11 +6,14 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mtaylor91/yakd/pkg/build/image"
+	"github.com/mtaylor91/yakd/pkg/gentoo"
 )
 
 func init() {
 	f := Image.Flags()
 	f.BoolP("force", "f", false, "Overwrite existing image")
+	f.String("gentoo-binpkgs-cache", gentoo.DefaultGentoo.BinPkgsCache,
+		"Path to Gentoo binpkgs cache")
 	f.String("mountpoint", "/mnt/target", "Mountpoint for image build")
 	f.String("os", "debian", "Operating system")
 	f.String("stage1-template", "build/{{.OS}}/yakd-stage1-{{.Arch}}.tar.gz",
