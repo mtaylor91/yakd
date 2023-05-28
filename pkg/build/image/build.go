@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mtaylor91/yakd/pkg/debian"
+	"github.com/mtaylor91/yakd/pkg/gentoo"
 	"github.com/mtaylor91/yakd/pkg/util"
 )
 
@@ -126,6 +127,9 @@ func (c *Config) BuildImage(
 	case "debian":
 		debian := debian.DebianDefault
 		err = d.Populate(ctx, stage1, debian)
+	case "gentoo":
+		gentoo := gentoo.DefaultGentoo
+		err = d.Populate(ctx, stage1, gentoo)
 	default:
 		err = fmt.Errorf("unsupported OS: %s", c.OS)
 	}

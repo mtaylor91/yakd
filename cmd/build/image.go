@@ -15,7 +15,7 @@ func init() {
 	f.String("os", "debian", "Operating system")
 	f.String("stage1-template", "build/{{.OS}}/yakd-stage1-{{.Arch}}.tar.gz",
 		"Path template for stage 1 tarball")
-	f.Int("size-mb", 4096, "Image size in MB")
+	f.Int("size-mb", 10240, "Image size in MB")
 	f.String("target-template", "build/{{.OS}}/yakd.qcow2",
 		"Target path template for image")
 }

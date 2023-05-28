@@ -2,11 +2,9 @@ package gentoo
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path"
 	"runtime"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -225,31 +223,6 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 
 	if err := common.ConfigureNetwork(ctx, chroot, g.target); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func acceptKeywords(
-	target, section, pkg string, priority int, keywords ...string,
-) error {
-	filename := fmt.Sprintf("%02d-%s", priority, pkg)
-	return util.AppendFile(
-		path.Join(target, "etc", "portage", "package.accept_keywords", filename),
-		strings.Join(append(
-			[]string{fmt.Sprintf("%s/%s", section, pkg)}, keywords...,
-		), " "),
-	)
-}
-
-func installPackages(
-	ctx context.Context, chroot executor.Executor, pkgs ...string,
-) error {
-	for _, pkg := range pkgs {
-		err := chroot.RunCmd(ctx, "emerge", "--usepkg", pkg)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil

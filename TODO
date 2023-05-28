@@ -1,7 +1,6 @@
 High priority
-- Update resolv.conf
 Medium priority:
-- Set hostname
+- Cache gentoo bootloader binpkgs
 - Support multiarch
   * arm64 kernel / bootloader
 Low priority:
