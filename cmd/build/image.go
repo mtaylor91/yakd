@@ -13,7 +13,8 @@ func init() {
 	f.BoolP("force", "f", false, "Overwrite existing image")
 	f.String("mountpoint", "/mnt/target", "Mountpoint for image build")
 	f.String("os", "debian", "Operating system")
-	f.String("stage1-template", "stage1.tar.gz", "Path template for stage 1 tarball")
+	f.String("stage1-template", "build/{{.OS}}/yakd-stage1-{{.Arch}}.tar.gz",
+		"Path template for stage 1 tarball")
 	f.Int("size-mb", 4096, "Image size in MB")
 	f.String("target-template", "build/{{.OS}}/yakd.qcow2",
 		"Target path template for image")
