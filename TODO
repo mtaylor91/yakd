@@ -1,4 +1,8 @@
 High priority
+- Fix kubelet
+  * Fix systemd unit to depend on cri-o
+  * Fix to use cri-o
+- Package latest version of cri-o for gentoo
 Medium priority:
 - Cache gentoo bootloader binpkgs
 - Support multiarch
