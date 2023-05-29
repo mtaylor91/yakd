@@ -11,6 +11,10 @@ clean:
 	rm -f yakd.qcow2
 	rm -f yakd.qcow2.raw
 
+.PHONY: test
+test:
+	go test ./...
+
 bin/yakd: $(GO_SRCS)
 	@mkdir -p $(@D)
 	go build -o $@
