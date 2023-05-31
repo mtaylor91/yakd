@@ -1,4 +1,7 @@
 High priority
+- Update cri-o
+  * Ensure dev-vcs/git is installed
+  * Add yakd-gentoo to /etc/portage/repos.conf/yakd
 - Fix kubelet
   * Fix systemd unit to depend on cri-o
   * Fix to use cri-o

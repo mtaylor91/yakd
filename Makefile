@@ -7,9 +7,7 @@ all: bin/yakd
 .PHONY: clean
 clean:
 	rm -rf bin
-	rm -f stage1.tar.gz
-	rm -f yakd.qcow2
-	rm -f yakd.qcow2.raw
+	rm -rf build
 
 .PHONY: test
 test:
