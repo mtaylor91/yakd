@@ -16,7 +16,7 @@ func (g *Gentoo) BootstrapInstaller(
 	return &GentooBootstrapInstaller{g.BinPkgsCache, g.Stage3, target}
 }
 
-func (g *Gentoo) BootloaderInstaller(
+func (g *Gentoo) DiskInstaller(
 	device, target string, exec executor.Executor,
 ) os.OSBootloaderInstaller {
 	return &GentooBootloaderInstaller{g.BinPkgsCache, device, target, exec}

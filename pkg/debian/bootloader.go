@@ -8,21 +8,23 @@ import (
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
-type GrubInstaller struct {
+type GrubDiskInstaller struct {
 	Device   string
 	Target   string
 	Executor executor.Executor
 }
 
-func NewGrubInstaller(device, target string, exec executor.Executor) *GrubInstaller {
-	return &GrubInstaller{
+func NewGrubDiskInstaller(
+	device, target string, exec executor.Executor,
+) *GrubDiskInstaller {
+	return &GrubDiskInstaller{
 		Device:   device,
 		Target:   target,
 		Executor: exec,
 	}
 }
 
-func (g *GrubInstaller) Install(ctx context.Context) error {
+func (g *GrubDiskInstaller) Install(ctx context.Context) error {
 	// Install grub-efi
 	log.Infof("Installing grub")
 	if err := installPackages(ctx, g.Executor, "grub-efi"); err != nil {

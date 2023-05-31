@@ -39,10 +39,10 @@ type Debian struct {
 	Debootstrap string
 }
 
-func (d *Debian) BootloaderInstaller(
+func (d *Debian) DiskInstaller(
 	device, target string, exec executor.Executor,
 ) os.OSBootloaderInstaller {
-	return NewGrubInstaller(device, target, exec)
+	return NewGrubDiskInstaller(device, target, exec)
 }
 
 func (d *Debian) BootstrapInstaller(target string) os.OSBootstrapInstaller {

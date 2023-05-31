@@ -8,7 +8,7 @@ import (
 
 type OS interface {
 	BootstrapInstaller(target string) OSBootstrapInstaller
-	BootloaderInstaller(
+	DiskInstaller(
 		device, target string, exec executor.Executor,
 	) OSBootloaderInstaller
 }

@@ -125,7 +125,7 @@ func (d *Disk) Populate(ctx context.Context, source string, yakdOS yakdOS.OS) er
 
 	// Install bootloader
 	log.Infof("Installing bootloader")
-	bootloader := yakdOS.BootloaderInstaller(
+	bootloader := yakdOS.DiskInstaller(
 		d.DevicePath, d.mountpoint, chrootExecutor)
 	if err := bootloader.Install(ctx); err != nil {
 		return err
