@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -37,41 +36,35 @@ func (c *Config) BuildImage(
 		return err
 	}
 
-	// Infer if we're building a raw image
-	raw := false
-	if filepath.Ext(target) == ".raw" {
-		raw = true
+	// Detect image type
+	switch filepath.Ext(target) {
+	case ".img":
+		return c.buildIMG(ctx, stage1, target)
+	case ".iso":
+		return c.buildISO(ctx, stage1, target)
+	case ".qcow2":
+		return c.buildQcow2(ctx, stage1, target)
+	default:
+		return fmt.Errorf("unknown image type: %s", filepath.Ext(target))
 	}
+}
 
-	rawName := target
-
-	if !raw {
-		rawName = target + ".raw"
-	}
-
-	r := util.NewRawImage(rawName, c.SizeMB, true, true)
-
+// buildIMG builds a raw image
+func (c *Config) buildIMG(
+	ctx context.Context,
+	stage1 string,
+	target string,
+) error {
 	// Check if target exists
 	if _, err := os.Stat(target); err == nil {
 		if c.Force {
 			// Remove target
 			if err := os.Remove(target); err != nil {
-				return fmt.Errorf("failed to remove target: %s", err)
+				return fmt.Errorf("failed to remove %s: %s",
+					target, err)
 			}
 		} else {
-			return fmt.Errorf("target already exists: %s", target)
-		}
-	}
-
-	// Check if raw image exists
-	if _, err := os.Stat(r.ImagePath); err == nil {
-		if c.Force {
-			// Remove raw image
-			if err := os.Remove(r.ImagePath); err != nil {
-				return fmt.Errorf("failed to remove raw image: %s", err)
-			}
-		} else {
-			return fmt.Errorf("raw image already exists: %s", r.ImagePath)
+			return fmt.Errorf("%s already exists", target)
 		}
 	}
 
@@ -81,13 +74,10 @@ func (c *Config) BuildImage(
 	}
 
 	// Allocate raw image file
+	r := util.NewRawImage(target, c.SizeMB, true, true)
 	log.Infof("Creating raw image at %s", r.ImagePath)
 	if err := r.Alloc(ctx); err != nil {
 		return err
-	}
-
-	if !raw {
-		defer r.Free()
 	}
 
 	// Create partition table
@@ -95,10 +85,6 @@ func (c *Config) BuildImage(
 	if err := util.PartitionDisk(ctx, r.ImagePath); err != nil {
 		return err
 	}
-
-	// Sleep to allow kernel to update partition table
-	log.Infof("Sleeping for 5 seconds to allow kernel to update partition table")
-	time.Sleep(5 * time.Second)
 
 	// Attach image
 	log.Infof("Attaching image %s", r.ImagePath)
@@ -137,12 +123,69 @@ func (c *Config) BuildImage(
 		return err
 	}
 
-	if !raw {
-		// Convert image to qcow2
-		log.Infof("Converting image %s to %s", r.ImagePath, target)
-		if err := r.Convert(ctx, target); err != nil {
-			return err
+	return nil
+}
+
+// buildISO builds an ISO image
+func (c *Config) buildISO(
+	ctx context.Context,
+	stage1 string,
+	target string,
+) error {
+	// Check if target exists
+	if _, err := os.Stat(target); err == nil {
+		if c.Force {
+			// Remove target
+			if err := os.Remove(target); err != nil {
+				return fmt.Errorf("failed to remove %s: %s",
+					target, err)
+			}
+		} else {
+			return fmt.Errorf("%s already exists", target)
 		}
+	}
+
+	// Check if stage1 exists
+	if _, err := os.Stat(stage1); err != nil {
+		return fmt.Errorf("stage1 tarball not found: %s", stage1)
+	}
+
+	return fmt.Errorf("ISO image creation not yet implemented")
+}
+
+// buildQcow2 builds a qcow2 image
+func (c *Config) buildQcow2(
+	ctx context.Context,
+	stage1 string,
+	target string,
+) error {
+	// Check if target exists
+	if _, err := os.Stat(target); err == nil {
+		if c.Force {
+			// Remove target
+			if err := os.Remove(target); err != nil {
+				return fmt.Errorf("failed to remove %s: %s",
+					target, err)
+			}
+		} else {
+			return fmt.Errorf("%s already exists", target)
+		}
+	}
+
+	// Build raw image
+	rawImagePath := target + ".img"
+	rawImage := util.NewRawImage(rawImagePath, c.SizeMB, true, true)
+	if err := c.buildIMG(ctx, stage1, rawImagePath); err != nil {
+		return err
+	}
+
+	// Clean up the raw image when we're done
+	defer rawImage.Free()
+
+	// Convert image to qcow2
+	log.Infof("Converting image %s to %s", rawImagePath, target)
+	if err := rawImage.Convert(ctx, target); err != nil {
+		return err
 	}
 
 	return nil

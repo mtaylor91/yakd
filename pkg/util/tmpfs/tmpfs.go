@@ -1,14 +1,10 @@
-package bootstrap
+package tmpfs
 
 import (
 	"context"
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
-
-	"github.com/mtaylor91/yakd/pkg/os"
 	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/chroot"
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
@@ -33,29 +29,6 @@ func (t *TmpFS) Allocate(ctx context.Context) error {
 	}
 
 	return MountTmpFSAt(ctx, t.Path, t.SizeMB)
-}
-
-// Bootstrap runs filesystem bootstrapping
-func (t *TmpFS) Bootstrap(ctx context.Context, operatingSystem os.OS) error {
-	// Bootstrap OS
-	installer := operatingSystem.BootstrapInstaller(t.Path)
-	err := installer.Bootstrap(ctx)
-	if err != nil {
-		return err
-	}
-
-	// Setup chroot executor
-	log.Infof("Setting up chroot at %s", t.Path)
-	chrootExecutor := chroot.NewExecutor(ctx, t.Path)
-	defer chrootExecutor.Teardown()
-
-	// Run post-bootstrap step
-	log.Infof("Running post-bootstrap step")
-	if err := installer.PostBootstrap(ctx, chrootExecutor); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Destroy removes the tmpfs

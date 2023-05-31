@@ -2,14 +2,14 @@ package debian
 
 import (
 	"github.com/mtaylor91/yakd/pkg/os"
-	"github.com/mtaylor91/yakd/pkg/util/bootstrap"
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 const (
-	DefaultDebootstrap = "debootstrap"
-	DefaultSuite       = "bullseye"
-	DefaultMirror      = "http://deb.debian.org/debian"
+	DefaultDebootstrap      = "debootstrap"
+	DefaultSuite            = "bullseye"
+	DefaultMirror           = "http://deb.debian.org/debian"
+	DefaultTargetMountpoint = "/mnt/target"
 )
 
 var DebianDefault = &Debian{
@@ -21,7 +21,7 @@ var DebianDefault = &Debian{
 var DefaultDebootstrapConfig = BootstrapConfig{
 	DefaultSuite,
 	DefaultMirror,
-	bootstrap.DefaultTargetMountpoint,
+	DefaultTargetMountpoint,
 	DefaultDebootstrap,
 }
 
