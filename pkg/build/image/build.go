@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"runtime"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/mtaylor91/yakd/pkg/util"
 )
 
@@ -30,6 +32,8 @@ func (c *Config) BuildImage(
 	if err != nil {
 		return err
 	}
+
+	log.Infof("Building image %s", target)
 
 	// Detect image type
 	switch filepath.Ext(target) {

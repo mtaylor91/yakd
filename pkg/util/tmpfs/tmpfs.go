@@ -33,7 +33,7 @@ func (t *TmpFS) Allocate(ctx context.Context) error {
 
 // Destroy removes the tmpfs
 func (t *TmpFS) Destroy() {
-	util.UnmountFilesystems(t.Path)
+	util.UnmountRecursive(t.Path)
 	util.RemoveMountpointAt(t.Path)
 }
 

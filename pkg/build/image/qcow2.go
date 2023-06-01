@@ -31,7 +31,7 @@ func (c *Config) buildQcow2(
 
 	// Build raw image
 	rawImagePath := target + ".img"
-	rawImage := util.NewRawImage(rawImagePath, c.SizeMB, true, true)
+	rawImage := util.NewRawImage(rawImagePath, c.SizeMB, true)
 	if err := c.buildIMG(ctx, stage1, rawImagePath); err != nil {
 		return err
 	}

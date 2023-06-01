@@ -80,12 +80,12 @@ func (d *Disk) Populate(ctx context.Context, source string, yakdOS yakdOS.OS) er
 
 	// Mount root partition
 	log.Infof("Mounting root partition %s on %s", d.rootPartition, d.mountpoint)
-	if err := MountPartitionAt(ctx, d.rootPartition, d.mountpoint); err != nil {
+	if err := Mount(ctx, d.rootPartition, d.mountpoint); err != nil {
 		return err
 	}
 
 	if d.cleanup {
-		defer UnmountFilesystems(d.mountpoint)
+		defer UnmountRecursive(d.mountpoint)
 	}
 
 	// Create ESP mountpoint
@@ -97,12 +97,12 @@ func (d *Disk) Populate(ctx context.Context, source string, yakdOS yakdOS.OS) er
 
 	// Mount ESP
 	log.Infof("Mounting ESP partition %s on %s", d.espPartition, esp)
-	if err := MountPartitionAt(ctx, d.espPartition, esp); err != nil {
+	if err := Mount(ctx, d.espPartition, esp); err != nil {
 		return err
 	}
 
 	if d.cleanup {
-		defer UnmountFilesystems(esp)
+		defer UnmountRecursive(esp)
 	}
 
 	// Copy source to root

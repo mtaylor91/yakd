@@ -37,7 +37,7 @@ func (c *Config) buildIMG(
 	}
 
 	// Allocate raw image file
-	r := util.NewRawImage(target, c.SizeMB, true, true)
+	r := util.NewRawImage(target, c.SizeMB, true)
 	log.Infof("Creating raw image at %s", r.ImagePath)
 	if err := r.Alloc(ctx); err != nil {
 		return err

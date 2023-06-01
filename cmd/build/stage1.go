@@ -20,7 +20,7 @@ func init() {
 		"Path to Gentoo binpkgs cache")
 	f.String("gentoo-stage3", "build/gentoo/upstream-stage3.tar.xz",
 		"Gentoo stage3 archive path")
-	f.String("mountpoint", "/mnt/target", "Mountpoint for stage 1 build")
+	f.String("mountpoint", "build/mount", "Mountpoint for stage 1 build")
 	f.String("target-template", "build/{{.OS}}/yakd-stage1-{{.Arch}}.tar.gz",
 		"Target path template for stage 1 archive")
 	f.Int("tmpfs-size", 10240, "tmpfs size in MB")

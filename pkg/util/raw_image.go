@@ -15,16 +15,14 @@ import (
 // RawImage represents a disk image
 type RawImage struct {
 	ImagePath string
-	cleanup   bool
 	sizeMB    int
 	overwrite bool
 }
 
 // NewRawImage initializes a new RawImage struct
-func NewRawImage(path string, sizeMB int, cleanup, overwrite bool) *RawImage {
+func NewRawImage(path string, sizeMB int, overwrite bool) *RawImage {
 	return &RawImage{
 		ImagePath: path,
-		cleanup:   true,
 		sizeMB:    sizeMB,
 		overwrite: overwrite,
 	}

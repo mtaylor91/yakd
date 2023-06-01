@@ -11,7 +11,7 @@ import (
 func init() {
 	f := Disk.Flags()
 	f.String("os", "debian", "Operating system")
-	f.String("mountpoint", "/mnt/target", "Path to mount the target filesystem")
+	f.String("mountpoint", "build/mount", "Path to mount the target filesystem")
 	f.String("stage1-template", "build/{{.OS}}/yakd-stage1-{{.Arch}}.tar.gz",
 		"Path template for stage 1 archive")
 }

@@ -9,7 +9,7 @@ const (
 	DefaultDebootstrap      = "debootstrap"
 	DefaultSuite            = "bullseye"
 	DefaultMirror           = "http://deb.debian.org/debian"
-	DefaultTargetMountpoint = "/mnt/target"
+	DefaultTargetMountpoint = "build/mount"
 )
 
 var DebianDefault = &Debian{
@@ -47,6 +47,14 @@ func (d *Debian) DiskInstaller(
 
 func (d *Debian) BootstrapInstaller(target string) os.OSBootstrapInstaller {
 	return NewBootstrapConfig(target)
+}
+
+func (d *Debian) HybridISOSourceBuilder(fsDir, isoDir string) os.HybridISOSourceBuilder {
+	return &HybridISOSourceBuilder{FSDir: fsDir, ISODir: isoDir}
+}
+
+func (d *Debian) HybridISOBuilder(isoDir, target string) os.HybridISOBuilder {
+	return &HybridISOBuilder{ISODir: isoDir, Target: target}
 }
 
 // NewBootstrapConfig initializes a new BootstrapConfig struct

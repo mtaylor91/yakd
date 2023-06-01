@@ -26,18 +26,26 @@ func RemoveMountpointAt(p string) {
 	}
 }
 
-// MountPartitionAt mounts the specified disk at the specified location
-func MountPartitionAt(ctx context.Context, partition, location string) error {
+// Mount mounts the specified disk at the specified location
+func Mount(ctx context.Context, device, location string) error {
 	// Mount filesystem
-	if err := executor.RunCmd(ctx, "mount", partition, location); err != nil {
+	if err := executor.RunCmd(ctx, "mount", device, location); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// UnmountFilesystems recursively unmounts the specified filesystem(s)
-func UnmountFilesystems(p string) {
+// Unmount unmounts the filesystem(s) as the specified location
+func Unmount(ctx context.Context, p string) {
+	// Unmount filesystem
+	if err := executor.RunCmd(ctx, "umount", p); err != nil {
+		log.Errorf("Unmount %s failed: %s", p, err)
+	}
+}
+
+// UnmountRecursive recursively unmounts the filesystem(s) as the specified location
+func UnmountRecursive(p string) {
 	// Unmount filesystem
 	ctx := context.Background()
 	if err := executor.RunCmd(ctx, "umount", "-R", p); err != nil {

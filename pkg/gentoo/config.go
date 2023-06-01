@@ -21,3 +21,11 @@ func (g *Gentoo) DiskInstaller(
 ) os.OSBootloaderInstaller {
 	return &GentooBootloaderInstaller{g.BinPkgsCache, device, target, exec}
 }
+
+func (g *Gentoo) HybridISOSourceBuilder(fsDir, isoDir string) os.HybridISOSourceBuilder {
+	return &HybridISOSourceBuilder{g.BinPkgsCache, fsDir, isoDir}
+}
+
+func (g *Gentoo) HybridISOBuilder(isoDir, target string) os.HybridISOBuilder {
+	return &HybridISOBuilder{isoDir, target}
+}
