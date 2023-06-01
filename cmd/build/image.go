@@ -12,6 +12,7 @@ import (
 func init() {
 	f := Image.Flags()
 	f.BoolP("force", "f", false, "Overwrite existing image")
+	f.String("format", "iso", "Image format")
 	f.String("gentoo-binpkgs-cache", gentoo.DefaultGentoo.BinPkgsCache,
 		"Path to Gentoo binpkgs cache")
 	f.String("mountpoint", "build/mount", "Mountpoint for image build")
@@ -19,7 +20,7 @@ func init() {
 	f.String("stage1-template", "build/{{.OS}}/yakd-stage1-{{.Arch}}.tar.gz",
 		"Path template for stage 1 tarball")
 	f.Int("size-mb", 10240, "Image size in MB")
-	f.String("target-template", "build/{{.OS}}/yakd.iso",
+	f.String("target-template", "build/{{.OS}}/yakd.{{.Format}}",
 		"Target path template for image")
 }
 
@@ -34,6 +35,7 @@ func BuildImage(cmd *cobra.Command, args []string) {
 	v := viper.New()
 
 	v.BindPFlag("force", f.Lookup("force"))
+	v.BindPFlag("format", f.Lookup("format"))
 	v.BindPFlag("gentoo-binpkgs-cache", f.Lookup("gentoo-binpkgs-cache"))
 	v.BindPFlag("mountpoint", f.Lookup("mountpoint"))
 	v.BindPFlag("os", f.Lookup("os"))

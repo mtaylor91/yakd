@@ -3,7 +3,6 @@ package image
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"runtime"
 
 	log "github.com/sirupsen/logrus"
@@ -26,8 +25,9 @@ func (c *Config) BuildImage(
 
 	// Construct target path
 	target, err := util.TemplateString(c.TargetTemplate, map[string]string{
-		"OS":   c.OS,
-		"Arch": runtime.GOARCH,
+		"OS":     c.OS,
+		"Arch":   runtime.GOARCH,
+		"Format": c.Format,
 	})
 	if err != nil {
 		return err
@@ -36,14 +36,14 @@ func (c *Config) BuildImage(
 	log.Infof("Building image %s", target)
 
 	// Detect image type
-	switch filepath.Ext(target) {
-	case ".img":
+	switch c.Format {
+	case "img":
 		return c.buildIMG(ctx, stage1, target)
-	case ".iso":
+	case "iso":
 		return c.buildISO(ctx, stage1, target)
-	case ".qcow2":
+	case "qcow2":
 		return c.buildQcow2(ctx, stage1, target)
 	default:
-		return fmt.Errorf("unknown image type: %s", filepath.Ext(target))
+		return fmt.Errorf("unknown image format: %s", c.Format)
 	}
 }
