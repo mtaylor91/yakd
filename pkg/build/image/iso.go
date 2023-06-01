@@ -13,7 +13,6 @@ import (
 	yakdOS "github.com/mtaylor91/yakd/pkg/os"
 	"github.com/mtaylor91/yakd/pkg/util"
 	"github.com/mtaylor91/yakd/pkg/util/chroot"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 	"github.com/mtaylor91/yakd/pkg/util/tmpfs"
 )
 
@@ -80,12 +79,6 @@ func (c *Config) buildISO(
 	default:
 		return fmt.Errorf("unknown operating system: %s", c.OS)
 	}
-
-	// TODO: remove debug code
-	defer func() {
-		// Run bash before deferred cleanup to allow manual inspection
-		executor.RunCmdWithStdin(ctx, "/bin/bash", os.Stdin)
-	}()
 
 	sourceBuilder := yakdOS.HybridISOSourceBuilder(fsDir, isoDir)
 	err := c.buildISOChroot(ctx, fsDir, isoDir, sourceBuilder)

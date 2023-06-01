@@ -23,7 +23,7 @@ set default=0
 set timeout=5
 
 menuentry "YAKD" {
-	linux /boot/vmlinuz root=live:/root.squashfs rd.live.image console=tty0 console=ttyS0,9600n8
+	linux /boot/vmlinuz rd.live.debug root=live:CDLABEL=YAKD console=tty0 console=ttyS0,9600n8
 	initrd /boot/initramfs
 }
 `
@@ -98,6 +98,11 @@ func (g *HybridISOSourceBuilder) BuildISOFS(
 		return err
 	}
 
+	// Install squashfs-tools
+	if err := installPackages(ctx, chroot, "sys-fs/squashfs-tools"); err != nil {
+		return err
+	}
+
 	// Create FS/boot/build/esp
 	esp := path.Join(g.FSDir, "boot", "build", "esp")
 	if err := os.MkdirAll(esp, 0755); err != nil {
@@ -124,13 +129,37 @@ func (g *HybridISOSourceBuilder) BuildISOFS(
 
 	log.Warning("TODO: cleanup filesystem")
 
+	// Identify kernel version
+	kernelModules, err := filepath.Glob(
+		filepath.Join(g.FSDir, "lib", "modules", "*"))
+	if err != nil {
+		return err
+	}
+	if len(kernelModules) != 1 {
+		return fmt.Errorf("expected 1 kernel, found %d", len(kernelModules))
+	}
+	kernelVersion := filepath.Base(kernelModules[0])
+
+	// Build initramfs
+	if err := chroot.RunCmd(
+		ctx, "dracut", "--force", "--kver", kernelVersion,
+		"--add", "dmsquash-live", "--add", "pollcdrom"); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (g *HybridISOSourceBuilder) BuildISOSources(ctx context.Context) error {
+	// Create LiveOS directory
+	liveOS := path.Join(g.ISODir, "LiveOS")
+	if err := os.MkdirAll(liveOS, 0755); err != nil {
+		return err
+	}
+
 	// Build root squashfs
 	if err := executor.RunCmd(ctx, "mksquashfs", g.FSDir,
-		path.Join(g.ISODir, "root.squashfs")); err != nil {
+		path.Join(liveOS, "squashfs.img")); err != nil {
 		return err
 	}
 
@@ -201,20 +230,6 @@ func (g *HybridISOSourceBuilder) BuildISOSources(ctx context.Context) error {
 		return err
 	}
 
-	// Create grub directory
-	err = os.MkdirAll(filepath.Join(g.ISODir, "boot", "grub"), 0755)
-	if err != nil {
-		return err
-	}
-
-	// Write grub.cfg
-	log.Infof("Writing GRUB configuration to %s/boot/grub/grub.cfg", g.ISODir)
-	err = util.WriteFile(
-		filepath.Join(g.ISODir, "boot", "grub", "grub.cfg"), grubCfg)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -273,6 +288,20 @@ func (g *HybridISOSourceBuilder) isoBuildBIOS(
 		return err
 	}
 
+	// Create grub directory
+	err = os.MkdirAll(filepath.Join(g.ISODir, "boot", "grub"), 0755)
+	if err != nil {
+		return err
+	}
+
+	// Write grub.cfg
+	log.Infof("Writing GRUB configuration to %s/boot/grub/grub.cfg", g.ISODir)
+	err = util.WriteFile(
+		filepath.Join(g.ISODir, "boot", "grub", "grub.cfg"), grubCfg)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -316,7 +345,7 @@ func (g *HybridISOSourceBuilder) isoBuildEFI(
 	if err := chroot.RunCmd(ctx, "grub-mkimage",
 		"-O", "x86_64-efi",
 		"-o", path.Join("/boot/build/esp/EFI/BOOT/BOOTX64.EFI"),
-		"-p", "/EFI/BOOT",
+		"-p", "/boot/grub",
 		"fat", "iso9660", "part_gpt", "part_msdos", "normal", "boot",
 		"linux", "configfile", "loopback", "chain", "efifwsetup", "efi_gop",
 		"efi_uga", "ls", "search", "search_label", "search_fs_uuid",
