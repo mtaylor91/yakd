@@ -13,6 +13,19 @@ import (
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
+const containersPolicyJSON = `{
+	"default": [
+		{
+			"type": "insecureAcceptAnything"
+		}
+	],
+	"transports": {
+		"docker-daemon": {
+			"": [{"type":"insecureAcceptAnything"}]
+		}
+	}
+}`
+
 const env02locale = `LANG="en_CA.UTF-8"
 LC_COLLATE="C.UTF-8"
 `
@@ -227,6 +240,15 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 		"sys-cluster/kubeadm",
 		"sys-cluster/kubectl",
 		"sys-cluster/kubelet",
+	); err != nil {
+		return err
+	}
+
+	// Install /etc/containers/policy.json
+	log.Infof("Installing /etc/containers/policy.json")
+	if err := util.WriteFile(
+		path.Join(g.target, "etc/containers/policy.json"),
+		containersPolicyJSON,
 	); err != nil {
 		return err
 	}
