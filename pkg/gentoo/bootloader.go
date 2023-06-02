@@ -5,9 +5,19 @@ import (
 	"os"
 	"path"
 
+	"github.com/mtaylor91/yakd/pkg/util"
 	"github.com/mtaylor91/yakd/pkg/util/executor"
 	log "github.com/sirupsen/logrus"
 )
+
+const grubDefault = `GRUB_DEFAULT=0
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR="YAKD"
+GRUB_CMDLINE_LINUX_DEFAULT=""
+GRUB_CMDLINE_LINUX="console=tty1 console=ttyS0,115200n8"
+GRUB_TERMINAL="console serial"
+GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"
+`
 
 type GentooBootloaderInstaller struct {
 	binPkgsCache string
@@ -43,6 +53,11 @@ func (g *GentooBootloaderInstaller) Install(ctx context.Context) error {
 	}()
 
 	err = installPackages(ctx, g.exec, "sys-boot/grub")
+	if err != nil {
+		return err
+	}
+
+	err = util.WriteFile(path.Join(g.target, "etc/default/grub"), grubDefault)
 	if err != nil {
 		return err
 	}
