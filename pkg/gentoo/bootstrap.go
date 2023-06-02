@@ -36,6 +36,14 @@ sync-openpgp-key-refresh-retry-delay-max = 60
 sync-openpgp-key-refresh-retry-delay-mult = 4
 `
 
+const gentooYAKDRepoConf = `[yakd-gentoo]
+location = /var/db/repos/yakd
+sync-type = git
+sync-uri = https://github.com/mtaylor91/yakd-gentoo.git
+auto-sync = yes
+priority = 100
+`
+
 const localeGen = `
 en_CA.UTF-8 UTF-8
 en_US.UTF-8 UTF-8
@@ -138,9 +146,31 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 		return err
 	}
 
+	// Write YAKD repo conf
+	yakdRepoConfPath := path.Join(
+		g.target, "etc/portage/repos.conf/yakd-gentoo.conf")
+	err = util.WriteFile(yakdRepoConfPath, gentooYAKDRepoConf)
+	if err != nil {
+		return err
+	}
+
 	// Run emerge-webrsync
 	log.Infof("Running emerge-webrsync")
 	err = chroot.RunCmd(ctx, "emerge-webrsync")
+	if err != nil {
+		return err
+	}
+
+	// Install dev-vcs/git
+	log.Infof("Installing dev-vcs/git")
+	err = installPackages(ctx, chroot, "dev-vcs/git")
+	if err != nil {
+		return err
+	}
+
+	// Run emerge --sync
+	log.Infof("Running emerge --sync")
+	err = chroot.RunCmd(ctx, "emerge", "--sync", "yakd-gentoo")
 	if err != nil {
 		return err
 	}
@@ -180,14 +210,6 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 		return err
 	}
 
-	// Install gentoo-kernel
-	log.Infof("Installing gentoo-kernel")
-	log.Warning("Disabled for testing")
-	if err := chroot.RunCmd(
-		ctx, "emerge", "--usepkg", "sys-kernel/gentoo-kernel"); err != nil {
-		return err
-	}
-
 	// Unmask cri-o
 	log.Infof("Unmasking app-containers/cri-o")
 	err = acceptKeywords(g.target, "app-containers", "cri-o", 99, "~amd64")
@@ -206,6 +228,13 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 		"sys-cluster/kubectl",
 		"sys-cluster/kubelet",
 	); err != nil {
+		return err
+	}
+
+	// Install gentoo-kernel
+	log.Infof("Installing gentoo-kernel")
+	if err := chroot.RunCmd(
+		ctx, "emerge", "--usepkg", "sys-kernel/gentoo-kernel"); err != nil {
 		return err
 	}
 
