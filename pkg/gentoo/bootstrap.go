@@ -24,7 +24,8 @@ const containersPolicyJSON = `{
 			"": [{"type":"insecureAcceptAnything"}]
 		}
 	}
-}`
+}
+`
 
 const env02locale = `LANG="en_CA.UTF-8"
 LC_COLLATE="C.UTF-8"
@@ -230,6 +231,27 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 		return err
 	}
 
+	// Unmask kubeadm
+	log.Infof("Unmasking sys-cluster/kubeadm")
+	err = acceptKeywords(g.target, "sys-cluster", "kubeadm", 99, "~amd64")
+	if err != nil {
+		return err
+	}
+
+	// Unmask kubectl
+	log.Infof("Unmasking sys-cluster/kubectl")
+	err = acceptKeywords(g.target, "sys-cluster", "kubectl", 99, "~amd64")
+	if err != nil {
+		return err
+	}
+
+	// Unmask kubelet
+	log.Infof("Unmasking sys-cluster/kubelet")
+	err = acceptKeywords(g.target, "sys-cluster", "kubelet", 99, "~amd64")
+	if err != nil {
+		return err
+	}
+
 	// Install cri-o
 	log.Infof("Installing kubernetes packages")
 	if err := installPackages(ctx, chroot,
@@ -300,8 +322,4 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 	}
 
 	return nil
-}
-
-func debugChroot(ctx context.Context, chroot executor.Executor) error {
-	return chroot.RunCmdWithStdin(ctx, "/bin/bash", os.Stdin)
 }
