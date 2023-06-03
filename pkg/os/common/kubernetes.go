@@ -1,13 +1,12 @@
 package common
 
 import (
-	"context"
 	"path"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 const sysctlConf = `net.ipv4.ip_forward=1
@@ -15,9 +14,7 @@ net.bridge.bridge-nf-call-iptables=1
 `
 
 // ConfigureKubernetes configures the target system to run Kubernetes.
-func ConfigureKubernetes(
-	ctx context.Context, exec executor.Executor, target string,
-) error {
+func ConfigureKubernetes(sys system.System, target string) error {
 	log.Infof("Configuring system to run Kubernetes")
 
 	modulesLoad := path.Join(target, "etc", "modules-load.d", "10-kubernetes.conf")
@@ -30,12 +27,12 @@ func ConfigureKubernetes(
 		return err
 	}
 
-	err := exec.RunCmd(ctx, "systemctl", "enable", "crio")
+	err := sys.RunCommand("systemctl", "enable", "crio")
 	if err != nil {
 		return err
 	}
 
-	err = exec.RunCmd(ctx, "systemctl", "enable", "kubelet")
+	err = sys.RunCommand("systemctl", "enable", "kubelet")
 	if err != nil {
 		return err
 	}

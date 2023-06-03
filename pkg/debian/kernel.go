@@ -1,18 +1,14 @@
 package debian
 
 import (
-	"context"
-
-	log "github.com/sirupsen/logrus"
-
-	"github.com/mtaylor91/yakd/pkg/util/executor"
+	"github.com/mtaylor91/yakd/pkg/system"
 )
 
 // installKernel installs the kernel specified in the kernel string
-func (c *BootstrapConfig) installKernel(ctx context.Context, exec executor.Executor) error {
+func (c *BootstrapConfig) installKernel(sys system.System) error {
 	// Install kernel
-	log.Infof("Installing kernel")
-	if err := installPackages(ctx, exec, "linux-image-amd64"); err != nil {
+	sys.Logger().Infof("Installing kernel")
+	if err := installPackages(sys, "linux-image-amd64"); err != nil {
 		return err
 	}
 

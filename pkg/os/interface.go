@@ -3,7 +3,7 @@ package os
 import (
 	"context"
 
-	"github.com/mtaylor91/yakd/pkg/util/executor"
+	"github.com/mtaylor91/yakd/pkg/system"
 )
 
 type OS interface {
@@ -12,7 +12,7 @@ type OS interface {
 
 	// DiskInstaller installs the bootloader to disk
 	DiskInstaller(
-		device, target string, exec executor.Executor,
+		device, target string, sys system.System,
 	) OSBootloaderInstaller
 
 	// HybridISOSourceBuilder builds hybrid ISO source files
@@ -24,7 +24,7 @@ type OS interface {
 
 type OSBootstrapInstaller interface {
 	Bootstrap(ctx context.Context) error
-	PostBootstrap(ctx context.Context, chroot executor.Executor) error
+	PostBootstrap(ctx context.Context, chroot system.System) error
 }
 
 type OSBootloaderInstaller interface {
@@ -32,7 +32,7 @@ type OSBootloaderInstaller interface {
 }
 
 type HybridISOSourceBuilder interface {
-	BuildISOFS(ctx context.Context, chroot executor.Executor) error
+	BuildISOFS(ctx context.Context, chroot system.System) error
 	BuildISOSources(ctx context.Context) error
 }
 

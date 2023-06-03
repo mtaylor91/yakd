@@ -12,14 +12,15 @@ import (
 	"github.com/mtaylor91/yakd/pkg/debian"
 	"github.com/mtaylor91/yakd/pkg/gentoo"
 	yakdOS "github.com/mtaylor91/yakd/pkg/os"
+	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/chroot"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 	"github.com/mtaylor91/yakd/pkg/util/tmpfs"
 )
 
 // BuildStage1 builds a stage1 tarball
 func (stage1 *Stage1) Build(ctx context.Context) error {
+	sys := system.Local.WithContext(ctx)
+
 	// Construct target path
 	target, err := util.TemplateString(stage1.TargetTemplate, map[string]string{
 		"OS":   stage1.OS,
@@ -84,13 +85,13 @@ func (stage1 *Stage1) Build(ctx context.Context) error {
 	}
 
 	// PostBootstrap via chroot
-	if err := chrootPostBootstrap(ctx, tmpfs.Path, installer); err != nil {
+	if err := chrootPostBootstrap(ctx, tmpfs.Path, installer, sys); err != nil {
 		return err
 	}
 
 	// Create archive
 	log.Infof("Creating stage1 archive at %s", target)
-	err = executor.RunCmd(ctx, "tar", "-C", stage1.Mountpoint, "-caf", target, ".")
+	err = sys.RunCommand("tar", "-C", stage1.Mountpoint, "-caf", target, ".")
 	if err != nil {
 		return err
 	}
@@ -102,15 +103,20 @@ func chrootPostBootstrap(
 	ctx context.Context,
 	path string,
 	installer yakdOS.OSBootstrapInstaller,
+	localSystem system.System,
 ) error {
-	// Setup chroot executor
 	log.Infof("Setting up chroot at %s", path)
-	chrootExecutor := chroot.NewExecutor(ctx, path)
-	defer chrootExecutor.Teardown()
+	chrootSystem := system.Chroot(localSystem, path)
+
+	if err := chrootSystem.Setup(); err != nil {
+		return err
+	}
+
+	defer chrootSystem.Teardown()
 
 	// Run post-bootstrap step
 	log.Infof("Running post-bootstrap step")
-	if err := installer.PostBootstrap(ctx, chrootExecutor); err != nil {
+	if err := installer.PostBootstrap(ctx, chrootSystem); err != nil {
 		return err
 	}
 

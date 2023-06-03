@@ -6,8 +6,15 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mtaylor91/yakd/pkg/os/common"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
+	"github.com/mtaylor91/yakd/pkg/system"
 )
+
+type BootstrapConfig struct {
+	Suite       string
+	Mirror      string
+	Target      string
+	Debootstrap string
+}
 
 // Bootstrap uses debootstrap to bootstrap a Debian system
 func (c *BootstrapConfig) Bootstrap(ctx context.Context) error {
@@ -17,7 +24,8 @@ func (c *BootstrapConfig) Bootstrap(ctx context.Context) error {
 		debootstrap = c.Debootstrap
 	}
 
-	err := executor.Default.RunCmd(ctx, debootstrap, c.Suite, c.Target, c.Mirror)
+	sys := system.Local.WithContext(ctx)
+	err := sys.RunCommand(debootstrap, c.Suite, c.Target, c.Mirror)
 	if err != nil {
 		return err
 	}
@@ -27,15 +35,15 @@ func (c *BootstrapConfig) Bootstrap(ctx context.Context) error {
 
 // PostBootstrap runs post-bootstrap steps
 func (c *BootstrapConfig) PostBootstrap(
-	ctx context.Context, chroot executor.Executor) error {
+	ctx context.Context, chroot system.System) error {
 
 	// Configure locales
-	if err := configureLocales(ctx, chroot, c.Target); err != nil {
+	if err := configureLocales(chroot, c.Target); err != nil {
 		return err
 	}
 
 	// Install base packages
-	if err := installBasePackages(ctx, chroot); err != nil {
+	if err := installBasePackages(chroot); err != nil {
 		return err
 	}
 
@@ -45,27 +53,27 @@ func (c *BootstrapConfig) PostBootstrap(
 	}
 
 	// Install Kubernetes packages
-	if err := installKubePackages(ctx, chroot); err != nil {
+	if err := installKubePackages(chroot); err != nil {
 		return err
 	}
 
 	// Configure system for kubernetes
-	if err := common.ConfigureKubernetes(ctx, chroot, c.Target); err != nil {
+	if err := common.ConfigureKubernetes(chroot, c.Target); err != nil {
 		return err
 	}
 
 	// Configure networking
-	if err := common.ConfigureNetwork(ctx, chroot, c.Target); err != nil {
+	if err := common.ConfigureNetwork(chroot, c.Target); err != nil {
 		return err
 	}
 
 	// Configure the admin user
-	if err := configureAdminUser(ctx, chroot); err != nil {
+	if err := configureAdminUser(chroot); err != nil {
 		return err
 	}
 
 	// Install kernel
-	if err := c.installKernel(ctx, chroot); err != nil {
+	if err := c.installKernel(chroot); err != nil {
 		return err
 	}
 

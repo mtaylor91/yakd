@@ -11,8 +11,8 @@ import (
 	"github.com/mtaylor91/yakd/pkg/debian"
 	"github.com/mtaylor91/yakd/pkg/gentoo"
 	yakdOS "github.com/mtaylor91/yakd/pkg/os"
+	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/chroot"
 	"github.com/mtaylor91/yakd/pkg/util/tmpfs"
 )
 
@@ -99,11 +99,17 @@ func (c *Config) buildISOChroot(
 ) error {
 	// Setup chroot
 	log.Infof("Setting up chroot")
-	chrootExecutor := chroot.NewExecutor(ctx, fsDir)
-	defer chrootExecutor.Teardown()
+	localSystem := system.Local.WithContext(ctx)
+	chrootSystem := system.Chroot(localSystem, fsDir)
+	if err := chrootSystem.Setup(); err != nil {
+		return err
+	}
+
+	defer chrootSystem.Teardown()
+
 	// Build ISO filesystem
 	log.Infof("Building source(s) for %s hybrid ISO", c.OS)
-	return sourceBuilder.BuildISOFS(ctx, chrootExecutor)
+	return sourceBuilder.BuildISOFS(ctx, chrootSystem)
 }
 
 // buildISOHybrid builds the ISO image from the ISO sources

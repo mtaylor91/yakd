@@ -2,7 +2,7 @@ package debian
 
 import (
 	"github.com/mtaylor91/yakd/pkg/os"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
+	"github.com/mtaylor91/yakd/pkg/system"
 )
 
 const (
@@ -25,14 +25,6 @@ var DefaultDebootstrapConfig = BootstrapConfig{
 	DefaultDebootstrap,
 }
 
-// BootstrapConfig represents the configuration for a bootstrap
-type BootstrapConfig struct {
-	Suite       string
-	Mirror      string
-	Target      string
-	Debootstrap string
-}
-
 type Debian struct {
 	Suite       string
 	Mirror      string
@@ -40,9 +32,9 @@ type Debian struct {
 }
 
 func (d *Debian) DiskInstaller(
-	device, target string, exec executor.Executor,
+	device, target string, sys system.System,
 ) os.OSBootloaderInstaller {
-	return NewGrubDiskInstaller(device, target, exec)
+	return NewGrubDiskInstaller(device, target, sys)
 }
 
 func (d *Debian) BootstrapInstaller(target string) os.OSBootstrapInstaller {

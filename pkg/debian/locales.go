@@ -1,13 +1,11 @@
 package debian
 
 import (
-	"context"
 	"os"
 	"path"
 
+	"github.com/mtaylor91/yakd/pkg/system"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 const localeGen = `
@@ -16,9 +14,9 @@ en_US.UTF-8 UTF-8
 `
 
 // configureLocales configures the locales
-func configureLocales(ctx context.Context, exec executor.Executor, root string) error {
+func configureLocales(sys system.System, root string) error {
 	// Install locales
-	if err := installPackages(ctx, exec, "locales"); err != nil {
+	if err := installPackages(sys, "locales"); err != nil {
 		return err
 	}
 
@@ -31,7 +29,7 @@ func configureLocales(ctx context.Context, exec executor.Executor, root string) 
 
 	// Configure locales
 	log.Infof("Configuring locales")
-	if err := exec.RunCmd(ctx, "locale-gen"); err != nil {
+	if err := sys.RunCommand("locale-gen"); err != nil {
 		return err
 	}
 

@@ -1,13 +1,12 @@
 package common
 
 import (
-	"context"
 	"path"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 const ethernetConfig = `[Match]
@@ -24,9 +23,7 @@ const hostsConfig = `127.0.0.1 localhost
 `
 
 // ConfigureNetwork configures the network for the target system.
-func ConfigureNetwork(
-	ctx context.Context, exec executor.Executor, target string,
-) error {
+func ConfigureNetwork(sys system.System, target string) error {
 	log.Infof("Configuring networking")
 
 	ethernet := path.Join(target, "etc", "systemd", "network", "10-ethernet.network")
@@ -44,7 +41,7 @@ func ConfigureNetwork(
 		return err
 	}
 
-	err := exec.RunCmd(ctx, "systemctl", "enable", "systemd-networkd")
+	err := sys.RunCommand("systemctl", "enable", "systemd-networkd")
 	if err != nil {
 		return err
 	}

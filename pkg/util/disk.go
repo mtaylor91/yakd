@@ -9,8 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	yakdOS "github.com/mtaylor91/yakd/pkg/os"
-	"github.com/mtaylor91/yakd/pkg/util/chroot"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
+	"github.com/mtaylor91/yakd/pkg/system"
 )
 
 // Disk represents the bootstrap configuration for a disk
@@ -53,13 +52,14 @@ func NewDisk(devicePath, mountpoint string, cleanup bool) (*Disk, error) {
 // Format the disk partitions
 func (d *Disk) Format(ctx context.Context) error {
 	// Create FAT32 filesystem on EFI partition
-	err := executor.RunCmd(ctx, "mkfs.vfat", "-F", "32", d.espPartition)
+	sys := system.Local.WithContext(ctx)
+	err := sys.RunCommand("mkfs.vfat", "-F", "32", d.espPartition)
 	if err != nil {
 		return err
 	}
 
 	// Create ext4 filesystem on root partition
-	if err := executor.RunCmd(ctx, "mkfs.ext4", d.rootPartition); err != nil {
+	if err := sys.RunCommand("mkfs.ext4", d.rootPartition); err != nil {
 		return err
 	}
 
@@ -113,8 +113,13 @@ func (d *Disk) Populate(ctx context.Context, source string, yakdOS yakdOS.OS) er
 
 	// Setup chroot executor
 	log.Infof("Setting up chroot")
-	chrootExecutor := chroot.NewExecutor(ctx, d.mountpoint)
-	defer chrootExecutor.Teardown()
+	sys := system.Local.WithContext(ctx)
+	chrootSys := system.Chroot(sys, d.mountpoint)
+	if err := chrootSys.Setup(); err != nil {
+		return err
+	}
+
+	defer chrootSys.Teardown()
 
 	// Configure filesystems
 	log.Infof("Configuring filesystems")
@@ -125,8 +130,7 @@ func (d *Disk) Populate(ctx context.Context, source string, yakdOS yakdOS.OS) er
 
 	// Install bootloader
 	log.Infof("Installing bootloader")
-	bootloader := yakdOS.DiskInstaller(
-		d.DevicePath, d.mountpoint, chrootExecutor)
+	bootloader := yakdOS.DiskInstaller(d.DevicePath, d.mountpoint, chrootSys)
 	if err := bootloader.Install(ctx); err != nil {
 		return err
 	}

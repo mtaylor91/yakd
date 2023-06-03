@@ -1,13 +1,12 @@
 package gentoo
 
 import (
-	"context"
 	"fmt"
 	"path"
 	"strings"
 
+	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 // acceptKeywords unmasks a package with the given keywords
@@ -24,11 +23,9 @@ func acceptKeywords(
 }
 
 // installPackages installs the given packages
-func installPackages(
-	ctx context.Context, chroot executor.Executor, pkgs ...string,
-) error {
+func installPackages(sys system.System, pkgs ...string) error {
 	for _, pkg := range pkgs {
-		err := chroot.RunCmd(ctx, "emerge", "--usepkg", pkg)
+		err := sys.RunCommand("emerge", "--usepkg", pkg)
 		if err != nil {
 			return err
 		}

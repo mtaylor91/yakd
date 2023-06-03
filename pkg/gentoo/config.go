@@ -2,7 +2,7 @@ package gentoo
 
 import (
 	"github.com/mtaylor91/yakd/pkg/os"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
+	"github.com/mtaylor91/yakd/pkg/system"
 )
 
 type Gentoo struct {
@@ -17,9 +17,9 @@ func (g *Gentoo) BootstrapInstaller(
 }
 
 func (g *Gentoo) DiskInstaller(
-	device, target string, exec executor.Executor,
+	device, target string, sys system.System,
 ) os.OSBootloaderInstaller {
-	return &GentooBootloaderInstaller{g.BinPkgsCache, device, target, exec}
+	return &GentooBootloaderInstaller{g.BinPkgsCache, device, target, sys}
 }
 
 func (g *Gentoo) HybridISOSourceBuilder(fsDir, isoDir string) os.HybridISOSourceBuilder {

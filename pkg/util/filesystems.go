@@ -1,13 +1,14 @@
 package util
 
 import (
+	"bytes"
 	"context"
 	"html/template"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/mtaylor91/yakd/pkg/util/executor"
+	"github.com/mtaylor91/yakd/pkg/system"
 )
 
 const fstabTemplate = `# <filesystem> <mountpoint> <type> <options> <dump> <pass>
@@ -51,11 +52,13 @@ func ConfigureFilesystems(ctx context.Context, mountpoint, rootPartition, espPar
 
 // GetFilesystemUUID returns the UUID of the specified filesystem
 func GetFilesystemUUID(ctx context.Context, devicePath string) (string, error) {
-	blkidOutput, err := executor.GetOutput(
-		ctx, "blkid", "-s", "UUID", "-o", "value", devicePath)
+	var blkidOutput bytes.Buffer
+	sys := system.Local.WithContext(ctx)
+	err := sys.RunCommandWithOutput(
+		&blkidOutput, "blkid", "-s", "UUID", "-o", "value", devicePath)
 	if err != nil {
 		return "", err
 	}
 
-	return strings.TrimSpace(string(blkidOutput)), nil
+	return strings.TrimSpace(blkidOutput.String()), nil
 }

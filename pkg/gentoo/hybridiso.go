@@ -10,8 +10,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 const grubCfg = `
@@ -35,7 +35,9 @@ type HybridISOBuilder struct {
 
 func (g *HybridISOBuilder) BuildISO(ctx context.Context) error {
 	// Build ISO
-	if err := executor.RunCmd(ctx, "xorrisofs",
+	sys := system.Local.WithContext(ctx)
+	if err := sys.RunCommand(
+		"xorrisofs",
 		"-iso-level", "3",
 		"-full-iso9660-filenames",
 		"-volid", "YAKD",
@@ -63,11 +65,13 @@ type HybridISOSourceBuilder struct {
 }
 
 func (g *HybridISOSourceBuilder) BuildISOFS(
-	ctx context.Context, chroot executor.Executor,
+	ctx context.Context, chroot system.System,
 ) error {
+	sys := system.Local.WithContext(ctx)
+
 	// Bind BinPkgsCache to /var/cache/binpkgs
-	if err := executor.Default.RunCmd(
-		ctx, "mount", "--bind",
+	if err := sys.RunCommand(
+		"mount", "--bind",
 		g.BinPkgsCache,
 		path.Join(g.FSDir, "var/cache/binpkgs"),
 	); err != nil {
@@ -76,30 +80,30 @@ func (g *HybridISOSourceBuilder) BuildISOFS(
 
 	// Unmount /var/cache/binpkgs on exit
 	defer func() {
-		if err := executor.Default.RunCmd(
-			ctx, "umount", path.Join(g.FSDir, "var/cache/binpkgs"),
+		if err := sys.RunCommand(
+			"umount", path.Join(g.FSDir, "var/cache/binpkgs"),
 		); err != nil {
 			log.Warnf("Failed to unmount /var/cache/binpkgs: %s", err)
 		}
 	}()
 
 	// Install grub
-	if err := installPackages(ctx, chroot, "sys-boot/grub"); err != nil {
+	if err := installPackages(chroot, "sys-boot/grub"); err != nil {
 		return err
 	}
 
 	// Install syslinux
-	if err := installPackages(ctx, chroot, "sys-boot/syslinux"); err != nil {
+	if err := installPackages(chroot, "sys-boot/syslinux"); err != nil {
 		return err
 	}
 
 	// Install mkfs.vfat
-	if err := installPackages(ctx, chroot, "sys-fs/dosfstools"); err != nil {
+	if err := installPackages(chroot, "sys-fs/dosfstools"); err != nil {
 		return err
 	}
 
 	// Install squashfs-tools
-	if err := installPackages(ctx, chroot, "sys-fs/squashfs-tools"); err != nil {
+	if err := installPackages(chroot, "sys-fs/squashfs-tools"); err != nil {
 		return err
 	}
 
@@ -141,8 +145,8 @@ func (g *HybridISOSourceBuilder) BuildISOFS(
 	kernelVersion := filepath.Base(kernelModules[0])
 
 	// Build initramfs
-	if err := chroot.RunCmd(
-		ctx, "dracut", "--force", "--kver", kernelVersion,
+	if err := chroot.RunCommand(
+		"dracut", "--force", "--kver", kernelVersion,
 		"--add", "dmsquash-live", "--add", "pollcdrom"); err != nil {
 		return err
 	}
@@ -158,7 +162,8 @@ func (g *HybridISOSourceBuilder) BuildISOSources(ctx context.Context) error {
 	}
 
 	// Build root squashfs
-	if err := executor.RunCmd(ctx, "mksquashfs", g.FSDir,
+	sys := system.Local.WithContext(ctx)
+	if err := sys.RunCommand("mksquashfs", g.FSDir,
 		path.Join(liveOS, "squashfs.img")); err != nil {
 		return err
 	}
@@ -234,12 +239,13 @@ func (g *HybridISOSourceBuilder) BuildISOSources(ctx context.Context) error {
 }
 
 func (g *HybridISOSourceBuilder) isoBuildBIOS(
-	ctx context.Context, chroot executor.Executor,
+	ctx context.Context, chroot system.System,
 ) error {
 	log.Info("Building grub BIOS image")
 
 	// Build grub BIOS image
-	if err := chroot.RunCmd(ctx, "grub-mkimage", "-O", "i386-pc",
+	if err := chroot.RunCommand(
+		"grub-mkimage", "-O", "i386-pc",
 		"-o", path.Join("/boot", "build", "core.img"),
 		"-p", "/boot/grub",
 		"biosdisk", "fat", "iso9660", "part_gpt", "part_msdos", "normal", "boot",
@@ -306,7 +312,7 @@ func (g *HybridISOSourceBuilder) isoBuildBIOS(
 }
 
 func (g *HybridISOSourceBuilder) isoBuildEFI(
-	ctx context.Context, esp string, chroot executor.Executor,
+	ctx context.Context, esp string, chroot system.System,
 ) error {
 	log.Info("Building grub EFI image")
 
@@ -324,7 +330,7 @@ func (g *HybridISOSourceBuilder) isoBuildEFI(
 	defer loop.Detach()
 
 	// Create filesystem
-	err = chroot.RunCmd(ctx, "mkfs.vfat", "-F", "16", loop.DevicePath)
+	err = chroot.RunCommand("mkfs.vfat", "-F", "16", loop.DevicePath)
 	if err != nil {
 		return err
 	}
@@ -342,8 +348,8 @@ func (g *HybridISOSourceBuilder) isoBuildEFI(
 	}
 
 	// Build grub EFI image
-	if err := chroot.RunCmd(ctx, "grub-mkimage",
-		"-O", "x86_64-efi",
+	if err := chroot.RunCommand(
+		"grub-mkimage", "-O", "x86_64-efi",
 		"-o", path.Join("/boot/build/esp/EFI/BOOT/BOOTX64.EFI"),
 		"-p", "/boot/grub",
 		"fat", "iso9660", "part_gpt", "part_msdos", "normal", "boot",

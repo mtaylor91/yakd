@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 // TmpFS is a filesystem that is mounted as a tmpfs
@@ -40,7 +40,8 @@ func (t *TmpFS) Destroy() {
 // MountTmpFSAt mounts a tmpfs at the given path
 func MountTmpFSAt(ctx context.Context, path string, sizeMB int) error {
 	options := fmt.Sprintf("size=%dM", sizeMB)
-	err := executor.RunCmd(ctx, "mount", "-t", "tmpfs", "-o", options, "tmpfs", path)
+	sys := system.Local.WithContext(ctx)
+	err := sys.RunCommand("mount", "-t", "tmpfs", "-o", options, "tmpfs", path)
 	if err != nil {
 		return err
 	}

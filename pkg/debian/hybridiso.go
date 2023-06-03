@@ -3,7 +3,7 @@ package debian
 import (
 	"context"
 
-	"github.com/mtaylor91/yakd/pkg/util/executor"
+	"github.com/mtaylor91/yakd/pkg/system"
 )
 
 type HybridISOSourceBuilder struct {
@@ -12,7 +12,7 @@ type HybridISOSourceBuilder struct {
 }
 
 func (b *HybridISOSourceBuilder) BuildISOFS(
-	ctx context.Context, chroot executor.Executor,
+	ctx context.Context, chroot system.System,
 ) error {
 	panic("not implemented")
 }

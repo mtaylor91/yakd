@@ -9,8 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mtaylor91/yakd/pkg/os/common"
+	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 )
 
 const containersPolicyJSON = `{
@@ -108,8 +108,10 @@ func (g *GentooBootstrapInstaller) Bootstrap(ctx context.Context) error {
 }
 
 func (g *GentooBootstrapInstaller) PostBootstrap(
-	ctx context.Context, chroot executor.Executor,
+	ctx context.Context, chroot system.System,
 ) error {
+	sys := system.Local.WithContext(ctx)
+
 	// Ensure binPkgsCache exists
 	err := os.MkdirAll(g.binPkgsCache, 0755)
 	if err != nil {
@@ -117,8 +119,8 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 	}
 
 	// Bind binPkgsCache to /var/cache/binpkgs
-	if err = executor.Default.RunCmd(
-		ctx, "mount", "--bind",
+	if err = sys.RunCommand(
+		"mount", "--bind",
 		g.binPkgsCache,
 		path.Join(g.target, "var/cache/binpkgs"),
 	); err != nil {
@@ -127,8 +129,8 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 
 	// Unmount /var/cache/binpkgs on exit
 	defer func() {
-		if err := executor.Default.RunCmd(
-			ctx, "umount", path.Join(g.target, "var/cache/binpkgs"),
+		if err := sys.RunCommand(
+			"umount", path.Join(g.target, "var/cache/binpkgs"),
 		); err != nil {
 			log.Warnf("Failed to unmount /var/cache/binpkgs: %s", err)
 		}
@@ -170,29 +172,28 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 
 	// Run emerge-webrsync
 	log.Infof("Running emerge-webrsync")
-	err = chroot.RunCmd(ctx, "emerge-webrsync")
+	err = chroot.RunCommand("emerge-webrsync")
 	if err != nil {
 		return err
 	}
 
 	// Install dev-vcs/git
 	log.Infof("Installing dev-vcs/git")
-	err = installPackages(ctx, chroot, "dev-vcs/git")
+	err = installPackages(chroot, "dev-vcs/git")
 	if err != nil {
 		return err
 	}
 
 	// Run emerge --sync
 	log.Infof("Running emerge --sync")
-	err = chroot.RunCmd(ctx, "emerge", "--sync", "yakd-gentoo")
+	err = chroot.RunCommand("emerge", "--sync", "yakd-gentoo")
 	if err != nil {
 		return err
 	}
 
 	// Emerge @world updates
 	log.Infof("Emerging @world updates")
-	err = chroot.RunCmd(
-		ctx, "emerge", "--usepkg", "--update", "--deep", "--newuse", "@world")
+	err = chroot.RunCommand("emerge", "--usepkg", "--update", "--deep", "--newuse", "@world")
 	if err != nil {
 		return err
 	}
@@ -220,7 +221,7 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 
 	// Configure locales
 	log.Infof("Configuring locales")
-	if err := chroot.RunCmd(ctx, "locale-gen"); err != nil {
+	if err := chroot.RunCommand("locale-gen"); err != nil {
 		return err
 	}
 
@@ -254,7 +255,7 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 
 	// Install cri-o
 	log.Infof("Installing kubernetes packages")
-	if err := installPackages(ctx, chroot,
+	if err := installPackages(chroot,
 		"app-admin/sudo",
 		"app-containers/cri-o",
 		"net-firewall/ebtables",
@@ -277,19 +278,19 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 
 	// Install gentoo-kernel
 	log.Infof("Installing gentoo-kernel")
-	if err := chroot.RunCmd(
-		ctx, "emerge", "--usepkg", "sys-kernel/gentoo-kernel"); err != nil {
+	if err := chroot.RunCommand(
+		"emerge", "--usepkg", "sys-kernel/gentoo-kernel"); err != nil {
 		return err
 	}
 
 	log.Infof("Creating admin user")
-	err = chroot.RunCmd(ctx, "useradd", "-m", "-G", "wheel", "admin")
+	err = chroot.RunCommand("useradd", "-m", "-G", "wheel", "admin")
 	if err != nil {
 		return err
 	}
 
 	log.Infof("Removing admin password")
-	if err := chroot.RunCmd(ctx, "passwd", "-d", "admin"); err != nil {
+	if err := chroot.RunCommand("passwd", "-d", "admin"); err != nil {
 		return err
 	}
 
@@ -308,16 +309,16 @@ func (g *GentooBootstrapInstaller) PostBootstrap(
 
 	log.Infof("Setting machine id")
 	// Set machine id
-	err = chroot.RunCmd(ctx, "systemd-machine-id-setup")
+	err = chroot.RunCommand("systemd-machine-id-setup")
 	if err != nil {
 		return err
 	}
 
-	if err := common.ConfigureKubernetes(ctx, chroot, g.target); err != nil {
+	if err := common.ConfigureKubernetes(chroot, g.target); err != nil {
 		return err
 	}
 
-	if err := common.ConfigureNetwork(ctx, chroot, g.target); err != nil {
+	if err := common.ConfigureNetwork(chroot, g.target); err != nil {
 		return err
 	}
 

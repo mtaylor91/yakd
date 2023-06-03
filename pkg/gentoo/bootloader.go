@@ -5,9 +5,10 @@ import (
 	"os"
 	"path"
 
-	"github.com/mtaylor91/yakd/pkg/util"
-	"github.com/mtaylor91/yakd/pkg/util/executor"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mtaylor91/yakd/pkg/system"
+	"github.com/mtaylor91/yakd/pkg/util"
 )
 
 const grubDefault = `GRUB_DEFAULT=0
@@ -23,11 +24,13 @@ type GentooBootloaderInstaller struct {
 	binPkgsCache string
 	device       string
 	target       string
-	exec         executor.Executor
+	system       system.System
 }
 
 // Install installs the bootloader.
 func (g *GentooBootloaderInstaller) Install(ctx context.Context) error {
+	sys := system.Local.WithContext(ctx)
+
 	// Ensure binPkgsCache exists
 	err := os.MkdirAll(g.binPkgsCache, 0755)
 	if err != nil {
@@ -35,8 +38,8 @@ func (g *GentooBootloaderInstaller) Install(ctx context.Context) error {
 	}
 
 	// Bind binPkgsCache to /var/cache/binpkgs
-	if err = executor.Default.RunCmd(
-		ctx, "mount", "--bind",
+	if err = sys.RunCommand(
+		"mount", "--bind",
 		g.binPkgsCache,
 		path.Join(g.target, "var/cache/binpkgs"),
 	); err != nil {
@@ -45,14 +48,14 @@ func (g *GentooBootloaderInstaller) Install(ctx context.Context) error {
 
 	// Unmount /var/cache/binpkgs on exit
 	defer func() {
-		if err := executor.Default.RunCmd(
-			ctx, "umount", path.Join(g.target, "var/cache/binpkgs"),
+		if err := sys.RunCommand(
+			"umount", path.Join(g.target, "var/cache/binpkgs"),
 		); err != nil {
 			log.Warnf("Failed to unmount /var/cache/binpkgs: %s", err)
 		}
 	}()
 
-	err = installPackages(ctx, g.exec, "sys-boot/grub")
+	err = installPackages(g.system, "sys-boot/grub")
 	if err != nil {
 		return err
 	}
@@ -62,15 +65,13 @@ func (g *GentooBootloaderInstaller) Install(ctx context.Context) error {
 		return err
 	}
 
-	err = g.exec.RunCmd(ctx,
-		"grub-install", "--removable",
-		"--efi-directory", "/boot/efi",
-		g.device)
+	err = g.system.RunCommand(
+		"grub-install", "--removable", "--efi-directory", "/boot/efi", g.device)
 	if err != nil {
 		return err
 	}
 
-	err = g.exec.RunCmd(ctx, "grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+	err = g.system.RunCommand("grub-mkconfig", "-o", "/boot/grub/grub.cfg")
 	if err != nil {
 		return err
 	}
