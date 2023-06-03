@@ -1,4 +1,4 @@
-package build
+package cmd
 
 import (
 	log "github.com/sirupsen/logrus"
@@ -6,14 +6,14 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mtaylor91/yakd/pkg/build/image"
-	"github.com/mtaylor91/yakd/pkg/gentoo"
+	"github.com/mtaylor91/yakd/pkg/build/release/gentoo"
 )
 
 func init() {
 	f := Image.Flags()
 	f.BoolP("force", "f", false, "Overwrite existing image")
 	f.String("format", "iso", "Image format")
-	f.String("gentoo-binpkgs-cache", gentoo.DefaultGentoo.BinPkgsCache,
+	f.String("gentoo-binpkgs-cache", gentoo.Default.BinPkgsCache,
 		"Path to Gentoo binpkgs cache")
 	f.String("mountpoint", "build/mount", "Mountpoint for image build")
 	f.String("os", "debian", "Operating system")

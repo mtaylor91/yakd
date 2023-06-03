@@ -8,7 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/mtaylor91/yakd/pkg/os/common"
+	"github.com/mtaylor91/yakd/pkg/build/release/common"
 	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
 )
@@ -107,9 +107,9 @@ func (g *GentooBootstrapInstaller) Bootstrap(ctx context.Context) error {
 	return nil
 }
 
-func (g *GentooBootstrapInstaller) PostBootstrap(
-	ctx context.Context, chroot system.System,
-) error {
+func (g *GentooBootstrapInstaller) Install(
+	ctx context.Context, chroot system.System) error {
+
 	sys := system.Local.WithContext(ctx)
 
 	// Ensure binPkgsCache exists

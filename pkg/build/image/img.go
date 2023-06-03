@@ -7,8 +7,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/mtaylor91/yakd/pkg/debian"
-	"github.com/mtaylor91/yakd/pkg/gentoo"
+	"github.com/mtaylor91/yakd/pkg/build/disk"
+	"github.com/mtaylor91/yakd/pkg/build/release/debian"
+	"github.com/mtaylor91/yakd/pkg/build/release/gentoo"
 	"github.com/mtaylor91/yakd/pkg/util"
 )
 
@@ -59,7 +60,7 @@ func (c *Config) buildIMG(
 	defer loop.Detach()
 
 	// Initialize image loop device disk
-	d, err := util.NewDisk(loop.DevicePath, c.Mountpoint, true)
+	d, err := disk.NewDisk(loop.DevicePath, c.Mountpoint, true)
 	if err != nil {
 		return err
 	}
@@ -74,10 +75,10 @@ func (c *Config) buildIMG(
 	log.Infof("Populating disk image mounted at %s", c.Mountpoint)
 	switch c.OS {
 	case "debian":
-		debian := debian.DebianDefault
+		debian := debian.Default
 		err = d.Populate(ctx, stage1, debian)
 	case "gentoo":
-		gentoo := gentoo.DefaultGentoo
+		gentoo := gentoo.Default
 		err = d.Populate(ctx, stage1, gentoo)
 	default:
 		err = fmt.Errorf("unsupported OS: %s", c.OS)

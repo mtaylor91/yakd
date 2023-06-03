@@ -7,7 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/mtaylor91/yakd/cmd"
+	"github.com/mtaylor91/yakd/pkg/build/cmd"
 )
 
 func main() {

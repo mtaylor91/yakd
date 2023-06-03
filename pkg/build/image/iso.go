@@ -8,9 +8,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/mtaylor91/yakd/pkg/debian"
-	"github.com/mtaylor91/yakd/pkg/gentoo"
-	yakdOS "github.com/mtaylor91/yakd/pkg/os"
+	"github.com/mtaylor91/yakd/pkg/build/release"
+	"github.com/mtaylor91/yakd/pkg/build/release/debian"
+	"github.com/mtaylor91/yakd/pkg/build/release/gentoo"
 	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
 	"github.com/mtaylor91/yakd/pkg/util/tmpfs"
@@ -67,27 +67,26 @@ func (c *Config) buildISO(
 	}
 
 	// Select base OS
-	var yakdOS yakdOS.OS
+	var release release.OS
 	switch c.OS {
 	case "debian":
-		debian := debian.DebianDefault
-		yakdOS = debian
+		debian := debian.Default
+		release = debian
 	case "gentoo":
-		gentoo := gentoo.DefaultGentoo
+		gentoo := gentoo.Default
 		gentoo.BinPkgsCache = c.GentooBinPkgsCache
-		yakdOS = gentoo
+		release = gentoo
 	default:
 		return fmt.Errorf("unknown operating system: %s", c.OS)
 	}
 
-	sourceBuilder := yakdOS.HybridISOSourceBuilder(fsDir, isoDir)
+	sourceBuilder := release.HybridISOSourceBuilder(fsDir, isoDir)
 	err := c.buildISOChroot(ctx, fsDir, isoDir, sourceBuilder)
 	if err != nil {
 		return err
 	}
 
-	isoBuilder := yakdOS.HybridISOBuilder(isoDir, target)
-	err = c.buildISOHybrid(ctx, isoDir, target, sourceBuilder, isoBuilder)
+	err = c.buildISOHybrid(ctx, isoDir, target, sourceBuilder)
 	return err
 }
 
@@ -95,7 +94,7 @@ func (c *Config) buildISO(
 func (c *Config) buildISOChroot(
 	ctx context.Context,
 	fsDir, isoDir string,
-	sourceBuilder yakdOS.HybridISOSourceBuilder,
+	sourceBuilder release.HybridISOSourceBuilder,
 ) error {
 	// Setup chroot
 	log.Infof("Setting up chroot")
@@ -116,8 +115,7 @@ func (c *Config) buildISOChroot(
 func (c *Config) buildISOHybrid(
 	ctx context.Context,
 	isoDir, target string,
-	sourceBuilder yakdOS.HybridISOSourceBuilder,
-	isoBuilder yakdOS.HybridISOBuilder,
+	sourceBuilder release.HybridISOSourceBuilder,
 ) error {
 	// Build ISO sources
 	log.Infof("Building source(s) for %s hybrid ISO", c.OS)
@@ -126,8 +124,23 @@ func (c *Config) buildISOHybrid(
 	}
 
 	// Build ISO
-	log.Infof("Building %s hybrid ISO", c.OS)
-	if err := isoBuilder.BuildISO(ctx); err != nil {
+	sys := system.Local.WithContext(ctx)
+	if err := sys.RunCommand(
+		"xorrisofs",
+		"-iso-level", "3",
+		"-full-iso9660-filenames",
+		"-volid", "YAKD",
+		"-eltorito-boot", "bios.img",
+		"-no-emul-boot", "-boot-load-size", "4", "-boot-info-table",
+		"-isohybrid-mbr",
+		path.Join(isoDir, "isohdpfx.bin"),
+		"--efi-boot", "efi.img",
+		"-efi-boot-part",
+		"--efi-boot-image",
+		"--protective-msdos-label",
+		"-output", target,
+		isoDir,
+	); err != nil {
 		return err
 	}
 

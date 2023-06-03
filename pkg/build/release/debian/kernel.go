@@ -5,7 +5,7 @@ import (
 )
 
 // installKernel installs the kernel specified in the kernel string
-func (c *BootstrapConfig) installKernel(sys system.System) error {
+func installKernel(sys system.System) error {
 	// Install kernel
 	sys.Logger().Infof("Installing kernel")
 	if err := installPackages(sys, "linux-image-amd64"); err != nil {

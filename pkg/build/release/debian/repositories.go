@@ -30,26 +30,27 @@ type AptSource struct {
 }
 
 // configureRepositories configures the apt repositories for the target OS
-func (c *BootstrapConfig) configureRepositories(ctx context.Context) error {
+func (b *BootstrapInstaller) configureRepositories(ctx context.Context) error {
 	keyrings := "usr/share/keyrings"
 
 	// Setup sources.list
 	if err := writeTemplateToFile("sources.list", AptSourcesTemplate,
-		path.Join(c.Target, "etc", "apt", "sources.list"), c); err != nil {
+		path.Join(b.Target, "etc", "apt", "sources.list"), b); err != nil {
 		return err
 	}
 
 	// Setup kubernetes repository
 	keyring := path.Join(keyrings, "kubernetes-archive-keyring.gpg")
-	keyringDownload := http.NewDownload("https://packages.cloud.google.com/apt/doc/apt-key.gpg",
-		path.Join(c.Target, keyring))
+	keyringDownload := http.NewDownload(
+		"https://packages.cloud.google.com/apt/doc/apt-key.gpg",
+		path.Join(b.Target, keyring))
 	// Download keyring
 	if err := keyringDownload.DownloadAndDearmorGPG(ctx); err != nil {
 		return err
 	}
 	// Write template to apt source file
 	if err := writeTemplateToFile("kubernetes.list", SignedAptSourcesTemplate,
-		path.Join(c.Target, "etc", "apt", "sources.list.d", "kubernetes.list"),
+		path.Join(b.Target, "etc", "apt", "sources.list.d", "kubernetes.list"),
 		AptSource{
 			path.Join("/", keyring),
 			"https://apt.kubernetes.io/",
@@ -62,14 +63,17 @@ func (c *BootstrapConfig) configureRepositories(ctx context.Context) error {
 	// Setup libcontainers repository
 	keyring = path.Join(keyrings, "libcontainers-archive-keyring.gpg")
 	releaseKeyringUrl := libcontainersUrl(debianVersion) + "Release.key"
-	keyringDownload = http.NewDownload(releaseKeyringUrl, path.Join(c.Target, keyring))
+	keyringDownload = http.NewDownload(
+		releaseKeyringUrl, path.Join(b.Target, keyring))
 	// Download keyring
 	if err := keyringDownload.DownloadAndDearmorGPG(ctx); err != nil {
 		return err
 	}
 	// Write template to apt source file
 	if err := writeTemplateToFile("libcontainers.list", SignedAptSourcesTemplate,
-		path.Join(c.Target, "etc", "apt", "sources.list.d", "libcontainers.list"),
+		path.Join(
+			b.Target, "etc", "apt", "sources.list.d", "libcontainers.list",
+		),
 		AptSource{
 			path.Join("/", keyring),
 			libcontainersUrl(debianVersion),
@@ -82,14 +86,20 @@ func (c *BootstrapConfig) configureRepositories(ctx context.Context) error {
 	// Setup libcontainers crio repository
 	keyring = path.Join(keyrings, "libcontainers-crio-archive-keyring.gpg")
 	releaseKeyringUrl = crioArchiveUrl(crioVersion, debianVersion) + "Release.key"
-	keyringDownload = http.NewDownload(releaseKeyringUrl, path.Join(c.Target, keyring))
+	keyringDownload = http.NewDownload(
+		releaseKeyringUrl, path.Join(b.Target, keyring))
 	// Download keyring
 	if err := keyringDownload.DownloadAndDearmorGPG(ctx); err != nil {
 		return err
 	}
 	// Write template to apt source file
-	if err := writeTemplateToFile("libcontainers-crio.list", SignedAptSourcesTemplate,
-		path.Join(c.Target, "etc", "apt", "sources.list.d", "libcontainers-crio.list"),
+	if err := writeTemplateToFile(
+		"libcontainers-crio.list",
+		SignedAptSourcesTemplate,
+		path.Join(
+			b.Target, "etc", "apt", "sources.list.d",
+			"libcontainers-crio.list",
+		),
 		AptSource{
 			path.Join("/", keyring),
 			crioArchiveUrl(crioVersion, debianVersion),

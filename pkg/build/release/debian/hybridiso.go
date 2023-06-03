@@ -20,12 +20,3 @@ func (b *HybridISOSourceBuilder) BuildISOFS(
 func (b *HybridISOSourceBuilder) BuildISOSources(ctx context.Context) error {
 	panic("not implemented")
 }
-
-type HybridISOBuilder struct {
-	ISODir string
-	Target string
-}
-
-func (b *HybridISOBuilder) BuildISO(ctx context.Context) error {
-	panic("not implemented")
-}

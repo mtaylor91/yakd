@@ -1,6 +1,6 @@
 package gentoo
 
-var DefaultGentoo = &Gentoo{
+var Default = &Gentoo{
 	BinPkgsCache: "build/gentoo/binpkgs",
 	Stage3:       "build/gentoo/stage3.tar.xz",
 }

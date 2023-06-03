@@ -9,9 +9,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/mtaylor91/yakd/pkg/debian"
-	"github.com/mtaylor91/yakd/pkg/gentoo"
-	yakdOS "github.com/mtaylor91/yakd/pkg/os"
+	"github.com/mtaylor91/yakd/pkg/build/release"
+	"github.com/mtaylor91/yakd/pkg/build/release/debian"
+	"github.com/mtaylor91/yakd/pkg/build/release/gentoo"
 	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
 	"github.com/mtaylor91/yakd/pkg/util/tmpfs"
@@ -62,30 +62,30 @@ func (stage1 *Stage1) Build(ctx context.Context) error {
 	defer tmpfs.Destroy()
 
 	// Select base OS
-	var yakdOS yakdOS.OS
+	var rel release.OS
 	switch stage1.OS {
 	case "debian":
-		debian := debian.DebianDefault
+		debian := debian.Default
 		debian.Suite = stage1.DebianSuite
 		debian.Mirror = stage1.DebianMirror
-		yakdOS = debian
+		rel = debian
 	case "gentoo":
-		gentoo := gentoo.DefaultGentoo
+		gentoo := gentoo.Default
 		gentoo.BinPkgsCache = stage1.GentooBinPkgsCache
 		gentoo.Stage3 = stage1.GentooStage3
-		yakdOS = gentoo
+		rel = gentoo
 	default:
 		return fmt.Errorf("unknown operating system: %s", stage1.OS)
 	}
 
 	// Bootstrap OS
-	installer := yakdOS.BootstrapInstaller(tmpfs.Path)
+	installer := rel.BootstrapInstaller(tmpfs.Path)
 	if err := installer.Bootstrap(ctx); err != nil {
 		return err
 	}
 
 	// PostBootstrap via chroot
-	if err := chrootPostBootstrap(ctx, tmpfs.Path, installer, sys); err != nil {
+	if err := install(ctx, tmpfs.Path, installer, sys); err != nil {
 		return err
 	}
 
@@ -99,10 +99,10 @@ func (stage1 *Stage1) Build(ctx context.Context) error {
 	return nil
 }
 
-func chrootPostBootstrap(
+func install(
 	ctx context.Context,
 	path string,
-	installer yakdOS.OSBootstrapInstaller,
+	installer release.BootstrapInstaller,
 	localSystem system.System,
 ) error {
 	log.Infof("Setting up chroot at %s", path)
@@ -115,8 +115,8 @@ func chrootPostBootstrap(
 	defer chrootSystem.Teardown()
 
 	// Run post-bootstrap step
-	log.Infof("Running post-bootstrap step")
-	if err := installer.PostBootstrap(ctx, chrootSystem); err != nil {
+	log.Infof("Running install step")
+	if err := installer.Install(ctx, chrootSystem); err != nil {
 		return err
 	}
 

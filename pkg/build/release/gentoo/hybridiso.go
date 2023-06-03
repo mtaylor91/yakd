@@ -28,36 +28,6 @@ menuentry "YAKD" {
 }
 `
 
-type HybridISOBuilder struct {
-	ISODir string
-	Target string
-}
-
-func (g *HybridISOBuilder) BuildISO(ctx context.Context) error {
-	// Build ISO
-	sys := system.Local.WithContext(ctx)
-	if err := sys.RunCommand(
-		"xorrisofs",
-		"-iso-level", "3",
-		"-full-iso9660-filenames",
-		"-volid", "YAKD",
-		"-eltorito-boot", "bios.img",
-		"-no-emul-boot", "-boot-load-size", "4", "-boot-info-table",
-		"-isohybrid-mbr",
-		path.Join(g.ISODir, "isohdpfx.bin"),
-		"--efi-boot", "efi.img",
-		"-efi-boot-part",
-		"--efi-boot-image",
-		"--protective-msdos-label",
-		"-output", g.Target,
-		g.ISODir,
-	); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type HybridISOSourceBuilder struct {
 	BinPkgsCache string
 	FSDir        string

@@ -1,22 +1,23 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/mtaylor91/yakd/cmd/build"
+	log "github.com/sirupsen/logrus"
 )
 
-func init() {
-	Root.AddCommand(build.Root)
-	f := Root.PersistentFlags()
-	f.Bool("debug", false, "Enable debug logging")
-	f.Bool("trace", false, "Enable trace logging")
+var Root = &cobra.Command{
+	Use:              "yakd-build",
+	PersistentPreRun: ConfigureRoot,
 }
 
-var Root = &cobra.Command{
-	Use:              "yakd",
-	PersistentPreRun: ConfigureRoot,
+func init() {
+	Root.AddCommand(Image)
+	Root.AddCommand(Stage1)
+
+	flags := Root.PersistentFlags()
+	flags.Bool("debug", false, "Enable debug logging")
+	flags.Bool("trace", false, "Enable trace logging")
 }
 
 func ConfigureRoot(cmd *cobra.Command, args []string) {

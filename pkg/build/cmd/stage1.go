@@ -1,22 +1,22 @@
-package build
+package cmd
 
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/mtaylor91/yakd/pkg/build/release/debian"
+	"github.com/mtaylor91/yakd/pkg/build/release/gentoo"
 	"github.com/mtaylor91/yakd/pkg/build/stage1"
-	"github.com/mtaylor91/yakd/pkg/debian"
-	"github.com/mtaylor91/yakd/pkg/gentoo"
 )
 
 func init() {
 	f := Stage1.Flags()
 	f.String("os", "debian", "Operating system")
 	f.BoolP("force", "f", false, "Overwrite existing stage 1")
-	f.String("debian-mirror", debian.DefaultMirror, "Debian mirror")
-	f.String("debian-suite", debian.DefaultSuite, "Debian suite")
-	f.String("gentoo-binpkgs-cache", gentoo.DefaultGentoo.BinPkgsCache,
+	f.String("debian-mirror", debian.Default.Mirror, "Debian mirror")
+	f.String("debian-suite", debian.Default.Suite, "Debian suite")
+	f.String("gentoo-binpkgs-cache", gentoo.Default.BinPkgsCache,
 		"Path to Gentoo binpkgs cache")
 	f.String("gentoo-stage3", "build/gentoo/upstream-stage3.tar.xz",
 		"Gentoo stage3 archive path")
@@ -28,7 +28,7 @@ func init() {
 
 var Stage1 = &cobra.Command{
 	Use:   "stage1",
-	Short: "Stage 1 of image build",
+	Short: "Build stage1 filesystem tarball",
 	Run:   BuildStage1,
 }
 

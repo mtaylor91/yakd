@@ -8,7 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/mtaylor91/yakd/pkg/debian"
+	"github.com/mtaylor91/yakd/pkg/build/release/debian"
 	"github.com/mtaylor91/yakd/pkg/util"
 )
 
@@ -25,7 +25,7 @@ func (c *Config) BuildDisk(ctx context.Context) error {
 
 	log.Infof("Building disk %s from %s", c.Target, stage1)
 
-	debian := debian.DebianDefault
+	debian := debian.Default
 
 	// Check if target exists
 	if _, err := os.Stat(c.Target); err != nil {
@@ -44,7 +44,7 @@ func (c *Config) BuildDisk(ctx context.Context) error {
 	}
 
 	// Initialize disk
-	d, err := util.NewDisk(c.Target, c.Mountpoint, true)
+	d, err := NewDisk(c.Target, c.Mountpoint, true)
 	if err != nil {
 		return fmt.Errorf("initializing disk: %s", err)
 	}
