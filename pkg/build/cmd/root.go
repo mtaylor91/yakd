@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 )
 
 var Root = &cobra.Command{
@@ -21,17 +21,19 @@ func init() {
 }
 
 func ConfigureRoot(cmd *cobra.Command, args []string) {
+	ctx := cmd.Context()
+
 	f := cmd.Flags()
 
 	debug, _ := f.GetBool("debug")
 	if debug {
-		log.SetLevel(log.DebugLevel)
-		log.Debug("Debug logging enabled")
+		log.DefaultLogger.SetLevel(log.DebugLevel)
+		log.FromContext(ctx).Debug("Debug logging enabled")
 	}
 
 	trace, _ := f.GetBool("trace")
 	if trace {
-		log.SetLevel(log.TraceLevel)
-		log.Trace("Trace logging enabled")
+		log.DefaultLogger.SetLevel(log.TraceLevel)
+		log.FromContext(ctx).Trace("Trace logging enabled")
 	}
 }

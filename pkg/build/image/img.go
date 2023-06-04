@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/mtaylor91/yakd/pkg/build/disk"
 	"github.com/mtaylor91/yakd/pkg/build/release/debian"
 	"github.com/mtaylor91/yakd/pkg/build/release/gentoo"
 	"github.com/mtaylor91/yakd/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 )
 
 // buildIMG builds a raw image
@@ -19,6 +18,8 @@ func (c *Config) buildIMG(
 	stage1 string,
 	target string,
 ) error {
+	log := log.FromContext(ctx)
+
 	// Check if target exists
 	if _, err := os.Stat(target); err == nil {
 		if c.Force {

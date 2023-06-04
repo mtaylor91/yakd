@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"runtime"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/mtaylor91/yakd/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 )
 
 // BuildImage builds a yakd image from a stage1 tarball
 func (c *Config) BuildImage(
 	ctx context.Context,
 ) error {
+	log := log.FromContext(ctx)
+
 	// Construct stage1 path
 	stage1, err := util.TemplateString(c.Stage1Template, map[string]string{
 		"OS":   c.OS,

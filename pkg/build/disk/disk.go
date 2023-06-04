@@ -6,11 +6,10 @@ import (
 	"os"
 	"path"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/mtaylor91/yakd/pkg/build/release"
 	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 )
 
 // Disk represents the bootstrap configuration for a disk
@@ -69,6 +68,8 @@ func (d *Disk) Format(ctx context.Context) error {
 
 // Populate the disk from the specified source
 func (d *Disk) Populate(ctx context.Context, source string, os release.OS) error {
+	log := log.FromContext(ctx)
+
 	// Create mountpoint
 	log.Infof("Creating mountpoint %s", d.mountpoint)
 	if err := util.CreateMountpointAt(ctx, d.mountpoint); err != nil {
@@ -143,9 +144,6 @@ func (d *Disk) Populate(ctx context.Context, source string, os release.OS) error
 func identifyPartition(devicePath string, number int) (string, error) {
 	v1 := fmt.Sprintf("%sp%d", devicePath, number)
 	v2 := fmt.Sprintf("%s%d", devicePath, number)
-
-	log.Debugf("looking for partition %d on %s (trying %s, %s)",
-		number, devicePath, v1, v2)
 
 	if _, err := os.Stat(v1); err == nil {
 		return v1, nil

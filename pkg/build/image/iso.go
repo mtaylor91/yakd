@@ -6,13 +6,12 @@ import (
 	"os"
 	"path"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/mtaylor91/yakd/pkg/build/release"
 	"github.com/mtaylor91/yakd/pkg/build/release/debian"
 	"github.com/mtaylor91/yakd/pkg/build/release/gentoo"
 	"github.com/mtaylor91/yakd/pkg/system"
 	"github.com/mtaylor91/yakd/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 	"github.com/mtaylor91/yakd/pkg/util/tmpfs"
 )
 
@@ -22,6 +21,8 @@ func (c *Config) buildISO(
 	stage1 string,
 	target string,
 ) error {
+	log := log.FromContext(ctx)
+
 	// Check if stage1 exists
 	if _, err := os.Stat(stage1); err != nil {
 		return fmt.Errorf("stage1 tarball not found: %s", stage1)
@@ -97,6 +98,7 @@ func (c *Config) buildISOChroot(
 	sourceBuilder release.HybridISOSourceBuilder,
 ) error {
 	// Setup chroot
+	log := log.FromContext(ctx)
 	log.Infof("Setting up chroot")
 	localSystem := system.Local.WithContext(ctx)
 	chrootSystem := system.Chroot(localSystem, fsDir)
@@ -118,6 +120,7 @@ func (c *Config) buildISOHybrid(
 	sourceBuilder release.HybridISOSourceBuilder,
 ) error {
 	// Build ISO sources
+	log := log.FromContext(ctx)
 	log.Infof("Building source(s) for %s hybrid ISO", c.OS)
 	if err := sourceBuilder.BuildISOSources(ctx); err != nil {
 		return err

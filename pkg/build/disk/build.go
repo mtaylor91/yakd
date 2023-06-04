@@ -6,14 +6,15 @@ import (
 	"os"
 	"runtime"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/mtaylor91/yakd/pkg/build/release/debian"
 	"github.com/mtaylor91/yakd/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 )
 
 // BuildDisk builds a disk from a stage1 tarball
 func (c *Config) BuildDisk(ctx context.Context) error {
+	log := log.FromContext(ctx)
+
 	// Construct stage1 path
 	stage1, err := util.TemplateString(c.Stage1Template, map[string]string{
 		"OS":   c.OS,
@@ -56,7 +57,6 @@ func (c *Config) BuildDisk(ctx context.Context) error {
 	}
 
 	// Populate disk
-	log.Infof("Populating %s", c.Target)
 	if err := d.Populate(ctx, stage1, debian); err != nil {
 		return fmt.Errorf("populating %s: %s", c.Target, err)
 	}

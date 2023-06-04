@@ -5,21 +5,26 @@ import (
 	"os"
 	"os/signal"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/mtaylor91/yakd/pkg/build/cmd"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 )
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, log := log.Setup(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	exitSignals := make(chan os.Signal, 1)
 	signal.Notify(exitSignals, os.Interrupt, os.Kill)
-	go waitForSignal(ctx, cancel, exitSignals)
+	go waitForSignal(ctx, log, cancel, exitSignals)
 	cmd.Root.ExecuteContext(ctx)
 }
 
 func waitForSignal(
-	ctx context.Context, cancel context.CancelFunc, exitSignals chan os.Signal,
+	ctx context.Context,
+	log *logrus.Entry,
+	cancel context.CancelFunc,
+	exitSignals chan os.Signal,
 ) {
 	select {
 	case <-exitSignals:

@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/mtaylor91/yakd/pkg/build/release/debian"
 	"github.com/mtaylor91/yakd/pkg/build/release/gentoo"
 	"github.com/mtaylor91/yakd/pkg/build/stage1"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 )
 
 func init() {
@@ -34,6 +34,7 @@ var Stage1 = &cobra.Command{
 
 func BuildStage1(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
+	log := log.FromContext(ctx)
 
 	f := cmd.Flags()
 	v := viper.New()

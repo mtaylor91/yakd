@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/mtaylor91/yakd/pkg/build/image"
 	"github.com/mtaylor91/yakd/pkg/build/release/gentoo"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 )
 
 func init() {
@@ -31,6 +31,9 @@ var Image = &cobra.Command{
 }
 
 func BuildImage(cmd *cobra.Command, args []string) {
+	ctx := cmd.Context()
+	log := log.FromContext(ctx)
+
 	f := cmd.Flags()
 	v := viper.New()
 
@@ -48,7 +51,6 @@ func BuildImage(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	ctx := cmd.Context()
 	err := config.BuildImage(ctx)
 	if err != nil {
 		log.Fatal(err)

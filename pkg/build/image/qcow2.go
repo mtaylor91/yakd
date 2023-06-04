@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/mtaylor91/yakd/pkg/util"
+	"github.com/mtaylor91/yakd/pkg/util/log"
 )
 
 // buildQcow2 builds a qcow2 image
@@ -40,6 +39,7 @@ func (c *Config) buildQcow2(
 	defer rawImage.Free()
 
 	// Convert image to qcow2
+	log := log.FromContext(ctx)
 	log.Infof("Converting image %s to %s", rawImagePath, target)
 	if err := rawImage.Convert(ctx, target); err != nil {
 		return err
